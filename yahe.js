@@ -30,6 +30,8 @@
     container.id = globals.container_id;
 
     forEach(nodes, function(node) {
+      if (!(node.offsetWidth > 0 && node.offsetHeight > 0))
+        return;
       var cr = node.getBoundingClientRect(),
           span = doc.createElement('span'),
           hint = {node: node, span: span},
