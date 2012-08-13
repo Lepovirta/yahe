@@ -67,8 +67,8 @@
   };
 
   var dehilight = function(el) {
-    var re = new RegExp("(?:^|\s)" + globals.hilight_class + "(?!\S)");
-    el.className.replace(re, '');
+    var re = new RegExp("(\\s|^)" + globals.hilight_class + "(\\s|$)");
+    el.className = el.className.replace(re, '');
   };
 
   var hilight = function(el) {
