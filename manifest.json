@@ -1,0 +1,19 @@
+{
+  "name": "YAHE",
+  "version": "0.1",
+  "manifest_version": 2,
+  "description": "Yet Another Hints Extension: a very simple hit-a-hint extension.",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "ftp://*/*"
+      ],
+      "css": [ "yahe.css" ],
+      "js": [ "yahe.js" ],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ]
+}
