@@ -118,10 +118,10 @@
             that.clear_input();
           else
             that.deactivate();
-          e.preventDefault();
         } else {
           handle_input(e);
         }
+        e.preventDefault();
       } else if (is_yahekey(e)) {
         that.newhints();
         e.preventDefault();
@@ -146,10 +146,13 @@
       if (selected_el) {
         var node = selected_el.node;
         e.preventDefault();
-        mouseclick(node, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
         that.clear_input();
-        if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA')
+        if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') {
+          node.focus();
           that.deactivate();
+        } else {
+          mouseclick(node, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
+        }
       }
     };
 
