@@ -1,6 +1,6 @@
 {
   "name": "YAHE",
-  "version": "0.2",
+  "version": "0.3",
   "manifest_version": 2,
   "description": "Yet Another Hints Extension: a very simple hit-a-hint extension.",
   "content_scripts": [

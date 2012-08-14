@@ -22,6 +22,24 @@ You can deactivate the hints by pressing the escape key. Pressing Ctrl + `,`
 after typing some characters, clears the typing buffer. Pressing the
 combination again deactivates the hints.
 
+## Installation
+
+There are two ways to install this extension: from the repository sources or
+the `.crx` file.
+
+### From repository sources
+
+1. Clone this repository: `git clone git://github.com/jkpl/chrome-yahe.git`
+2. Fire up you Chrome/Chromium browser, and go to the extensions section of the
+   settings page.
+3. Enable the developer mode by checking the developer mode checkbox.
+4. Click the **Load unpacked extension...** button.
+5. Select the directory where you cloned the repository to.
+
+If you want to update the extension, pull the latest changes from the
+repository to your cloned directory (`git pull`), and either restart your
+browser or hit the extension's reload button in extensions page.
+
 ## License
 
 (2-clause BSD license)
