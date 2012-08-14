@@ -69,12 +69,15 @@
   };
 
   var dehilight = function(el) {
-    var re = new RegExp("(\\s|^)" + globals.hilight_class + "(\\s|$)");
-    el.className = el.className.replace(re, '');
+    if (el instanceof HTMLElement) {
+      var re = new RegExp("(\\s|^)" + globals.hilight_class + "(\\s|$)");
+      el.className = el.className.replace(re, '');
+    }
   };
 
   var hilight = function(el) {
-    el.className += ' ' + globals.hilight_class;
+    if (el instanceof HTMLElement)
+      el.className += ' ' + globals.hilight_class;
   };
 
   var is_yahekey = function(e) {
@@ -115,10 +118,9 @@
 
     that.keydown = function(e) {
       if (active) {
-        if (is_yahekey(e)) {
-          if (input.length > 0)
-            that.clear_input();
-          else
+        if (is_yahekey(e) && input.length > 0) {
+          that.clear_input();
+        } else if (is_yahekey(e)) {
             that.deactivate();
         } else {
           handle_input(e);
@@ -132,15 +134,19 @@
     };
 
     var handle_input = function(e) {
+      var c;
       switch (e.keyCode) {
       case 27:
         that.deactivate();
         break;
       case 13:
         open_selected(e);
+        that.clear_input();
         break;
       default:
-        that.append_input(String.fromCharCode(e.keyCode));
+        c = String.fromCharCode(e.keyCode).toLowerCase();
+        if (globals.hintcharacters.indexOf(c) >= 0)
+          that.append_input(c);
         break;
       }
     };
@@ -148,8 +154,6 @@
     var open_selected = function(e) {
       if (selected_el) {
         var node = selected_el.node;
-        e.preventDefault();
-        that.clear_input();
         if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') {
           node.focus();
           that.deactivate();
@@ -162,6 +166,8 @@
     var select_hint = function(query) {
       var el = hintsobj.hints[query.toLowerCase()];
       if (typeof el !== 'undefined') {
+        if (selected_el)
+          dehilight(selected_el.span);
         selected_el = el;
         hilight(el.span);
       }
