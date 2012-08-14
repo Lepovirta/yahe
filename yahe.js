@@ -20,6 +20,12 @@
     target.dispatchEvent(ev);
   };
 
+  var in_viewport = function(cr) {
+    return (cr.top >= 0 && cr.left >= 0 &&
+            cr.bottom <= window.innerHeight &&
+            cr.right <= window.innerWidth);
+  };
+
   var create_hints = function() {
     var nodes = doc.querySelectorAll(globals.hint_types),
         container = doc.createElement('div'),
@@ -30,10 +36,12 @@
     container.id = globals.container_id;
 
     forEach(nodes, function(node) {
-      if (!(node.offsetWidth > 0 && node.offsetHeight > 0))
+      var cr = node.getBoundingClientRect();
+      if (!(node.offsetWidth > 0 && node.offsetHeight > 0) ||
+         !in_viewport(cr))
         return;
-      var cr = node.getBoundingClientRect(),
-          span = doc.createElement('span'),
+
+      var span = doc.createElement('span'),
           hint = {node: node, span: span},
           hint_id = hintid();
 
