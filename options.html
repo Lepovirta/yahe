@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>YAHE options</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="options.css" />
+  </head>
+  <body>
+    <div class="box">
+      <div id="head">
+        <h1 id="title">
+          <a id="titlea" href="http://github.com/jkpl/chrome-yahe">YAHE</a>
+          options
+        </h1>
+      </div>
+      <div id="content">
+        <form id="options_form">
+          <p>
+            <label for="hintcharacters">Hint characters</label>
+            <input type="text" id="hintcharacters" />
+          </p>
+          <p>
+            <label for="activate_key">Shortcut key</label>
+            <input type="text" id="activate_key" />
+          </p>
+          <p>
+            Modifiers used with the shortcut key<br />
+            <input type="radio" value="ctrl" name="mod" checked="true" id="mod_ctrl" />
+            <label for="mod_ctrl">CTRL</label><br />
+            <input type="radio" value="alt" name="mod" id="mod_alt" />
+            <label for="mod_alt">ALT</label><br />
+            <input type="radio" value="meta" name="mod" id="mod_meta" />
+            <label for="mod_meta">META</label>
+          </p>
+          <input type="submit" value="Save" />
+        </form>
+      </div>
+    </div>
+    <script type="application/javascript" src="options.js"></script>
+  </body>
+</html>

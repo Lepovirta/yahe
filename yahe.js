@@ -1,9 +1,10 @@
-(function(window){
+(function(chrome, window){
   var globals = {
     hint_types: 'a, input:not([type=hidden]), textarea, select, img, button',
     container_id: 'chrome_yahe_container',
     hint_class: 'chrome_yahe_hint',
     hilight_class: 'chrome_yahe_hilight',
+    activate_modifier: 'ctrl',
     activate_keycode: 188,
     hintcharacters: 'fdjkghslrueicnxmowabzpt'
   }, doc = window.document;
@@ -108,15 +109,15 @@
       }
     };
     keyhandlers[globals.activate_keycode] = function(e) {
-      var r = true;
+      var r = true, hm = has_mod(e);
       if (active) {
-        if (e.ctrlKey && input.length > 0)
+        if (hm && input.length > 0)
           that.clear_input();
-        else if (e.ctrlKey)
+        else if (hm)
           that.deactivate();
         else
           r = keyhandlers.default(e);
-      } else if (e.ctrlKey) {
+      } else if (hm) {
         that.newhints();
       }
       return r;
@@ -137,6 +138,33 @@
     ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
                       ctrl, alt, shift, meta, 0, null);
     target.dispatchEvent(ev);
+  };
+
+  var load_options = function(ls) {
+    var mod = ls.modifier,
+        hintchars = ls.hintcharacters,
+        key = ls.activate_key;
+    if (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
+      globals.activate_modifier = mod;
+    if (hintchars)
+      globals.hintcharacters = filter_hintcharacters(hintchars);
+    if (key)
+      globals.activate_keycode = key.toUpperCase().charCodeAt(0) || 188;
+  };
+
+  var has_mod = function(e) {
+    return e[globals.activate_modifier + 'Key'];
+  };
+
+  var filter_hintcharacters = function(hintchars) {
+    var hc = [], hcdb = {};
+    forEach(hintchars.toLowerCase(), function(c) {
+      if (!hcdb[c]) {
+        hc.push(c);
+        hcdb[c] = true;
+      }
+    });
+    return hc.join('');
   };
 
   var in_viewport = function(cr) {
@@ -199,7 +227,11 @@
     return (e.ctrlKey || e.altKey || e.metaKey);
   };
 
-  // create and bind YAHE
-  var yahe = mk_yahe();
-  doc.addEventListener('keydown', yahe.keydown, true);
-}).call(null, window);
+  // load options, and create and bind YAHE
+  chrome.extension.sendRequest({method: "getOptions"}, function(response) {
+    var yahe;
+    load_options(response),
+    yahe = mk_yahe();
+    doc.addEventListener('keydown', yahe.keydown, true);
+  });
+}).call(null, chrome, window);
