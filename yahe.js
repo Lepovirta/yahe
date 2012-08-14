@@ -124,6 +124,7 @@
           handle_input(e);
         }
         e.preventDefault();
+        e.stopPropagation();
       } else if (is_yahekey(e)) {
         that.newhints();
         e.preventDefault();
