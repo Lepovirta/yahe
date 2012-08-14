@@ -118,24 +118,26 @@
 
     that.keydown = function(e) {
       if (active) {
-        if (is_yahekey(e) && input.length > 0) {
-          that.clear_input();
-        } else if (is_yahekey(e)) {
-            that.deactivate();
-        } else {
-          handle_input(e);
-        }
-        e.preventDefault();
-        e.stopPropagation();
+        handle_input(e);
       } else if (is_yahekey(e)) {
         that.newhints();
         e.preventDefault();
+        e.stopPropagation();
       }
     };
 
     var handle_input = function(e) {
       var c;
+      e.preventDefault();
+      e.stopPropagation();
       switch (e.keyCode) {
+      case globals.activate_keycode:
+        if (e.ctrlKey && input.length > 0) {
+          that.clear_input();
+        } else if (e.ctrlKey) {
+          that.deactivate();
+        }
+        break;
       case 27:
         that.deactivate();
         break;
