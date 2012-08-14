@@ -96,10 +96,12 @@
         return false;
       },
       27: function(e) { // escape
+        if (!active) return false;
         that.deactivate();
         return true;
       },
       13: function(e) { // return
+        if (!active) return false;
         open_selected(e);
         that.clear_input();
         return true;
