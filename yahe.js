@@ -1,6 +1,7 @@
 (function(chrome, window){
   var globals = {
-    hint_types: 'a, input:not([type=hidden]), textarea, select, img, button',
+    hint_types: 'a, input:not([type=hidden]), textarea, select, ' +
+      'button, [onclick], [onmousedown]',
     container_id: 'chrome_yahe_container',
     hint_class: 'chrome_yahe_hint',
     hilight_class: 'chrome_yahe_hilight',
@@ -51,17 +52,38 @@
       }
     };
 
-    var open_selected = function(e) {
-      if (selected_el) {
-        var node = selected_el.node;
-        if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') {
-          node.focus();
-          that.deactivate();
-        } else {
-          mouseclick(node, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
+    var open_selected = (function() {
+      var types = ['text', 'password', 'search', 'tel', 'url', 'email',
+                   'number', 'datetime', 'datetime-local'],
+          tags = ['INPUT', 'TEXTAREA', 'SELECT'];
+      var is_type = function(el) {
+        return types.some(function(x) {
+          return el.type === x;
+        });
+      };
+      var is_tag = function(el) {
+        return tags.some(function(x) {
+          return el.tagName === x;
+        });
+      };
+
+      var focus_or_click = function(el, fo, mc) {
+        return ((el.tagName === 'INPUT' && is_type(el)) ||
+                el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+      };
+
+      return function(e) {
+        if (selected_el) {
+          var node = selected_el.node;
+          if (focus_or_click(node))
+            node.focus();
+          else
+            mouseclick(node, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
+          if (is_tag(node))
+            that.deactivate();
         }
-      }
-    };
+      };
+    }());
 
     var select_hint = function(query) {
       var el = hintsobj.hints[query.toLowerCase()];
