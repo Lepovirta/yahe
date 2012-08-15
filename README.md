@@ -10,7 +10,8 @@ worked as inspiration for this one:
 
 ## Usage
 
-1. Press Ctrl + `,` to activate the hints.
+1. Press the hint key to activate the hints. The default hint key is Ctrl +
+   `,`.
 2. Type the code of the hint you want to activate.
 3. Once hint is highlighted, press enter key to simulate a mouse click on the
    link. You can the key press with modifiers like Ctrl and Shift to simulate a
@@ -18,9 +19,12 @@ worked as inspiration for this one:
 4. After activating a hint, the typing buffer is cleared, so you can continue
    by typing another code.
 
-You can deactivate the hints by pressing the escape key. Pressing Ctrl + `,`
-after typing some characters, clears the typing buffer. Pressing the
-combination again deactivates the hints.
+You can deactivate the hints by pressing the escape key. Pressing the hint key
+after typing some characters clears the typing buffer, and pressing it again
+deactivates the hints.
+
+You can customize the hint key and hint characters in the extension's options
+page.
 
 ## Installation
 
