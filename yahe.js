@@ -141,7 +141,7 @@
           r = keyhandlers.default(e);
       } else if (hm) {
         that.newhints();
-      }
+      } else { return false; }
       return r;
     };
 
