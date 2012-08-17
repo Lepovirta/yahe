@@ -206,9 +206,7 @@
 
     forEach(nodes, function(node) {
       var cr = node.getBoundingClientRect();
-      if (!(node.offsetWidth > 0 && node.offsetHeight > 0) ||
-         !in_viewport(cr))
-        return;
+      if (!in_viewport(cr)) return;
 
       var span = doc.createElement('span'),
           hint = {node: node, span: span},
