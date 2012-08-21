@@ -18,13 +18,13 @@
     that.newhints = function() {
       that.deactivate();
       hintsobj = create_hints();
-      doc.body.appendChild(hintsobj.container);
+      doc.documentElement.appendChild(hintsobj.container);
       active = true;
     };
 
     that.deactivate = function() {
       if (active) {
-        doc.body.removeChild(hintsobj.container);
+        doc.documentElement.removeChild(hintsobj.container);
         that.clear_input();
         active = false;
       }
