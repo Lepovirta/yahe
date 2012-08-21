@@ -192,7 +192,8 @@
   var in_viewport = function(cr) {
     return (cr.top >= 0 && cr.left >= 0 &&
             cr.bottom <= window.innerHeight &&
-            cr.right <= window.innerWidth);
+            cr.right <= window.innerWidth &&
+            cr.width > 0 && cr.height > 0);
   };
 
   var create_hints = function() {
