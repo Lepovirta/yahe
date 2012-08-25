@@ -1,4 +1,4 @@
-# YAHE: Yet Another Hints Extension
+# Yet Another Hints Extension
 
 I wasn't fully satisfied with the hit-a-hint extensions available for Chrome in
 the Chrome web store, so I made my own. These are the existing extensions that
