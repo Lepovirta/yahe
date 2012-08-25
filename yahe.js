@@ -6,7 +6,7 @@
     hint_class: 'chrome_yahe_hint',
     hilight_class: 'chrome_yahe_hilight',
     activate_modifier: 'ctrl',
-    activate_keycode: 109,
+    activate_keycode: 77,
     hintcharacters: 'fdjkghslrueicnxmowabzpt'
   }, doc = window.document;
 
@@ -171,7 +171,7 @@
     if (hintchars)
       globals.hintcharacters = filter_hintcharacters(hintchars);
     if (key)
-      globals.activate_keycode = key.toUpperCase().charCodeAt(0) || 188;
+      globals.activate_keycode = key.toUpperCase().charCodeAt(0) || globals.activate_keycode;
   };
 
   var has_mod = function(e) {
