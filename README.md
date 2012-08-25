@@ -6,12 +6,11 @@ worked as inspiration for this one:
 
 * [Hints script in DWB][hhdwb]
 * [Hit-a-Hint for Opera][hhopera] (hint code generation)
-* [Keyboard Navigation by xnoreq][kbnav] (keybindings)
+* [Keyboard Navigation by xnoreq][kbnav]
 
 ## Usage
 
-1. Press the hint key to activate the hints. The default hint key is Ctrl +
-   `,`.
+1. Press the hint key to activate the hints. The default hint key is `ctrl-m`.
 2. Type the code of the hint you want to activate.
 3. Once hint is highlighted, press enter key to simulate a mouse click on the
    link. You can the key press with modifiers like Ctrl and Shift to simulate a

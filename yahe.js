@@ -6,7 +6,7 @@
     hint_class: 'chrome_yahe_hint',
     hilight_class: 'chrome_yahe_hilight',
     activate_modifier: 'ctrl',
-    activate_keycode: 188,
+    activate_keycode: 109,
     hintcharacters: 'fdjkghslrueicnxmowabzpt'
   }, doc = window.document;
 

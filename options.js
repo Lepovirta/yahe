@@ -11,7 +11,7 @@
       dfs = {
         modifier: 'ctrl',
         hintcharacters: 'fdjkghslrueicnxmowabzpt',
-        activate_key: ','
+        activate_key: 'm'
       };
 
   var load_options = function() {
