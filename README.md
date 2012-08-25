@@ -27,10 +27,10 @@ page.
 
 ## Installation
 
-There are two ways to install this extension: from the repository sources or
-the `.crx` file.
+There are two ways to install this extension: from this extension's
+[Chrome Web Store][cws] page or from repository sources.
 
-### From repository sources
+### Installing from repository sources
 
 1. Clone this repository: `git clone git://github.com/jkpl/chrome-yahe.git`
 2. Fire up you Chrome/Chromium browser, and go to the extensions section of the
@@ -42,11 +42,6 @@ the `.crx` file.
 If you want to update the extension, pull the latest changes from the
 repository to your cloned directory (`git pull`), and either restart your
 browser or hit the extension's reload button in extensions page.
-
-### From crx
-
-Install the extension from the [repository's crx file][crxfile]. Note that this
-file is updated only when the extension version is updated.
 
 ## License
 
@@ -79,3 +74,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [hhdwb]: https://bitbucket.org/portix/dwb/src/0583e44d0164/scripts/hints.js
 [kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
 [crxfile]: https://github.com/jkpl/chrome-yahe/raw/master/chrome-yahe.crx
+[cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
