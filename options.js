@@ -7,6 +7,7 @@
       mod_alt = doc.getElementById('mod_alt'),
       mod_meta = doc.getElementById('mod_meta'),
       form = doc.getElementById('options_form'),
+      saved = doc.getElementsByClassName('saved')[0],
       dfs = {
         modifier: 'ctrl',
         hintcharacters: 'fdjkghslrueicnxmowabzpt',
@@ -33,6 +34,11 @@
     ls.modifier = mod;
     ls.hintcharacters = hintchars.value || dfs.hintcharacters;
     ls.activate_key = activate_key.value[0] || dfs.activate_key;
+
+    saved.style.display = "block";
+    window.setTimeout(function() {
+      saved.style.display = "none";
+    }, 2000, false);
   };
 
   load_options();

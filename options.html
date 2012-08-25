@@ -6,35 +6,44 @@
     <link rel="stylesheet" type="text/css" href="options.css" />
   </head>
   <body>
-    <div class="box">
-      <div id="head">
-        <h1 id="title">
-          <a id="titlea" href="http://github.com/jkpl/chrome-yahe">YAHE</a>
-          options
-        </h1>
-      </div>
-      <div id="content">
-        <form id="options_form">
-          <p>
-            <label for="hintcharacters">Hint characters</label>
+    <div id="head">
+      <h1 id="title">
+        <a id="titlea" href="http://github.com/jkpl/chrome-yahe">YAHE</a>
+        options
+      </h1>
+    </div>
+    <div id="content">
+      <form id="options_form">
+        <div class="form-el">
+          <label class="form-el-label" for="hintcharacters">Hint characters</label>
+          <div class="form-el-controls">
             <input type="text" id="hintcharacters" />
-          </p>
-          <p>
-            <label for="activate_key">Shortcut key</label>
+          </div>
+        </div>
+        <div class="form-el">
+          <label class="form-el-label" for="activate_key">Shortcut key</label>
+          <div class="form-el-controls">
             <input type="text" id="activate_key" />
-          </p>
-          <p>
-            Modifiers used with the shortcut key<br />
+          </div>
+        </div>
+        <div class="form-el">
+          <div class="form-el-label">Modifier for shortcut key</div>
+          <div class="form-el-controls">
             <input type="radio" value="ctrl" name="mod" checked="true" id="mod_ctrl" />
-            <label for="mod_ctrl">CTRL</label><br />
+            <label for="mod_ctrl">Ctrl</label><br />
             <input type="radio" value="alt" name="mod" id="mod_alt" />
-            <label for="mod_alt">ALT</label><br />
+            <label for="mod_alt">Alt</label><br />
             <input type="radio" value="meta" name="mod" id="mod_meta" />
-            <label for="mod_meta">META</label>
-          </p>
-          <input type="submit" value="Save" />
-        </form>
-      </div>
+            <label for="mod_meta">Meta / Command</label>
+          </div>
+        </div>
+        <div class="form-el">
+          <div class="form-el-controls">
+            <input type="submit" value="Save" />
+          </div>
+        </div>
+        <p class="saved" style="display:none;">Settings saved!</p>
+      </form>
     </div>
     <script type="application/javascript" src="options.js"></script>
   </body>
