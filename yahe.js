@@ -190,9 +190,7 @@
   };
 
   var in_viewport = function(cr) {
-    return (cr.top >= 0 && cr.left >= 0 &&
-            cr.bottom <= window.innerHeight &&
-            cr.right <= window.innerWidth &&
+    return (cr.bottom > 0 && cr.right > 0 &&
             cr.width > 0 && cr.height > 0);
   };
 
@@ -211,12 +209,14 @@
 
       var span = doc.createElement('span'),
           hint = {node: node, span: span},
-          hint_id = hintid();
+          hint_id = hintid(),
+          span_top = window.pageYOffset + (cr.top > 0 ? cr.top : 0),
+          span_left = window.pageXOffset + (cr.left > 0 ? cr.left : 0) - span.offsetWidth;
 
       span.innerText = hint_id;
       span.className = globals.hint_class;
-      span.style.top = (window.pageYOffset + cr.top) + "px";
-      span.style.left = (window.pageXOffset + cr.left - span.offsetWidth) + "px";
+      span.style.top = span_top + "px";
+      span.style.left = span_left + "px";
 
       container.appendChild(span);
       hints[hint_id] = hint;
