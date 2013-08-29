@@ -17,7 +17,8 @@
       "matches": [
         "http://*/*",
         "https://*/*",
-        "ftp://*/*"
+        "ftp://*/*",
+        "file://*/*"
       ],
       "css": [ "yahe.css" ],
       "js": [ "yahe.js" ],
