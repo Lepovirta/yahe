@@ -32,7 +32,8 @@ There are two ways to install this extension: from this extension's
 
 ### Installing from repository sources
 
-1. Clone this repository: `git clone git://github.com/jkpl/chrome-yahe.git`
+1. Clone YAHE repository: `git clone git://github.com/jkpl/chrome-yahe.git` or
+   `git clone git@bitbucket.org:jkpl/chrome-yahe.git`
 2. Fire up you Chrome/Chromium browser, and go to the extensions section of the
    settings page.
 3. Enable the developer mode by checking the developer mode checkbox.
@@ -73,5 +74,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [hhopera]: https://github.com/hogelog/hit-a-hint-opera
 [hhdwb]: https://bitbucket.org/portix/dwb/src/0583e44d0164/scripts/hints.js
 [kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
-[crxfile]: https://github.com/jkpl/chrome-yahe/raw/master/chrome-yahe.crx
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
