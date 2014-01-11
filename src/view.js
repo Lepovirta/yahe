@@ -47,7 +47,7 @@ View.prototype.generateHints = function(idGenerator) {
   utils.forEach(nodes, function(node) {
     if (inViewPort(node)) {
       var hintId = idGenerator(),
-          hint = new Hint(window, hintId, node);
+          hint = new Hint(that.window, hintId, node);
       fragment.appendChild(hint.hintNode);
       hints[hintId] = hint;
     }
@@ -69,6 +69,7 @@ function inViewPort(link) {
 };
 
 function Hint(window, hintId, hintable) {
+  this.window = window;
   this.hintId = hintId;
   this.hintable = hintable;
   this.hintNode = createHintNode(window, hintId, hintable);
@@ -100,7 +101,7 @@ Hint.prototype.activate = function(modifiers) {
   if (this.shouldFocus()) {
     this.hintable.focus();
   } else {
-    mouseclick(window, this.hintable, modifiers);
+    this.click(modifiers);
   }
 };
 
@@ -110,16 +111,16 @@ Hint.prototype.shouldFocus = function() {
           el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
 };
 
+Hint.prototype.click = function(mods) {
+  var ev = this.window.document.createEvent('MouseEvent');
+  ev.initMouseEvent('click', true, true, this.window, 0, 0, 0, 0, 0,
+                    mods.ctrlKey, mods.altKey, mods.shiftKey,
+                    mods.metaKey, 0, null);
+  this.hintable.dispatchEvent(ev);
+};
+
 function hasInputType(element) {
   return inputTypes.some(function(t) { return element.type === t; });
 }
-
-var mouseclick = function(window, target, mods) {
-  var ev = window.document.createEvent('MouseEvent');
-  ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
-                    mods.ctrlKey, mods.altKey, mods.shiftKey,
-                    mods.metaKey, 0, null);
-  target.dispatchEvent(ev);
-};
 
 exports.View = View;
