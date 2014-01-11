@@ -25,21 +25,6 @@ function appendToDocument(window, element) {
   window.document.documentElement.appendChild(element);
 }
 
-View.prototype.addKeyHandlerMap = function(handlerMap) {
-  window.document.addEventListener(
-    'keydown', handlerForHandlerMap(handlerMap), true);
-};
-
-function handlerForHandlerMap(handlerMap) {
-  return function(e) {
-    var handler = handlerMap[e.keyCode] || handlerMap.fallback;
-    if (handler(e)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-}
-
 View.prototype.clearHints = function() {
   this.container.innerHTML = "";
   this.hideHints();

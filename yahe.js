@@ -8,37 +8,29 @@ function Controller(view, generatorFactory, options) {
   this.hints = {};
 }
 
-Controller.prototype.initialize = function() {
-  this.addHandlers();
-};
-
-Controller.prototype.addHandlers = function() {
-  var handlerMap = {
-    27: this.escape.bind(this),
-    13: this.activateCurrentHint.bind(this),
-    fallback: this.addCharacter.bind(this)
-  };
-  handlerMap[this.options.activateKey] = this.toggle.bind(this);
-  this.view.addKeyHandlerMap(handlerMap);
-};
-
 Controller.prototype.escape = function(e) {
+  var that = this;
+  return this.whenActive(function() {
+    that.deactivate();
+  });
+};
+
+Controller.prototype.whenActive = function(f) {
   if (this.active) {
-    this.deactivate();
+    f();
     return true;
   }
   return false;
 };
 
 Controller.prototype.addCharacter = function(e) {
-  if (this.active && !containsMods(e)) {
+  var that = this;
+  return this.whenActive(function() {
     var c = String.fromCharCode(e.keyCode).toLowerCase();
-    if (this.options.hintCharacters.indexOf(c) >= 0) {
-      this.updateSelection(c);
+    if (that.options.hintCharacters.indexOf(c) >= 0) {
+      that.updateSelection(c);
     }
-    return true;
-  }
-  return false;
+  });
 };
 
 Controller.prototype.updateSelection = function(s) {
@@ -55,30 +47,22 @@ Controller.prototype.withCurrentHint = function(f) {
 };
 
 Controller.prototype.activateCurrentHint = function(e) {
-  if (this.active) {
-    this.withCurrentHint(function(h){ h.activate(e); });
-    this.clearInput();
-    return true;
-  }
-  return false;
+  var that = this;
+  return this.whenActive(function() {
+    that.withCurrentHint(function(h){ h.activate(e); });
+    that.clearInput();
+  });
 };
 
 Controller.prototype.toggle = function(e) {
-  if (this.hasActivateModifier(e)) {
-    if (this.input.length > 0) {
-      this.clearInput();
-    } else if (this.active) {
-      this.deactivate();
-    } else {
-      this.activate();
-    }
-    return true;
+  if (this.input.length > 0) {
+    this.clearInput();
+  } else if (this.active) {
+    this.deactivate();
+  } else {
+    this.activate();
   }
-  return this.addCharacter(e);
-};
-
-Controller.prototype.hasActivateModifier = function(e) {
-  return e[this.options.activateModifier + "Key"];
+  return true;
 };
 
 Controller.prototype.activate = function() {
@@ -151,23 +135,68 @@ function hintIdGenerator(hintCharacters) {
 exports.hintIdGenerator = hintIdGenerator;
 
 },{}],4:[function(require,module,exports){
+function KeyMapper(window) {
+  this.window = window;
+}
+
+KeyMapper.prototype.addHandler = function(keyCode, modifiers, handler) {
+  addKeyDownHandler(window, handler, function(e) {
+    return e.keyCode === keyCode && modifiersMatch(modifiers, e);
+  });
+};
+
+function modifiersMatch(modifiers, e) {
+  return modifiers === null || modifiers.every(function(mod) {
+    return e[mod + "Key"];
+  });
+}
+
+function addKeyDownHandler(window, handler, predicate) {
+  var h = function(e) {
+    if (predicate(e) && handler(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+  window.document.addEventListener('keydown', h, true);
+}
+
+KeyMapper.prototype.addDefaultNonModifierHandler = function(handler) {
+  addKeyDownHandler(window, handler, function(e) {
+    return noModifiers(e);
+  });
+};
+
+function noModifiers(e) {
+  return !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey;
+}
+
+exports.KeyMapper = KeyMapper;
+
+},{}],5:[function(require,module,exports){
 (function(chrome, window) {
   var Controller = require("./controller").Controller,
       View = require("./view").View,
       idGeneratorFactory = require("./hintidgen").hintIdGenerator,
-      optionParser = require("./optionparser").optionParser;
+      optionParser = require("./optionparser").optionParser,
+      KeyMapper = require("./keymapper").KeyMapper;
 
   chrome.extension.sendRequest({method: "getOptions"}, function(response) {
     var options = optionParser(response),
+        keyMapper = new KeyMapper(window),
         view = new View(window),
         generator = idGeneratorFactory.bind(null, options.hintCharacters),
         controller = new Controller(view, generator, options);
 
-    controller.initialize();
+    keyMapper.addHandler(options.activateKey, [options.activateModifier],
+                         controller.toggle.bind(controller));
+    keyMapper.addHandler(27, null, controller.escape.bind(controller));
+    keyMapper.addHandler(13, null, controller.activateCurrentHint.bind(controller));
+    keyMapper.addDefaultNonModifierHandler(controller.addCharacter.bind(controller));
   });
 }).call(null, chrome, window);
 
-},{"./controller":1,"./hintidgen":3,"./optionparser":5,"./view":7}],5:[function(require,module,exports){
+},{"./controller":1,"./hintidgen":3,"./keymapper":4,"./optionparser":6,"./view":8}],6:[function(require,module,exports){
 var utils = require("./utils"),
     defaults = require("./defaults").defaultOptions;
 
@@ -202,7 +231,7 @@ function getHintCharacters(raw) {
 
 exports.optionParser = optionParser;
 
-},{"./defaults":2,"./utils":6}],6:[function(require,module,exports){
+},{"./defaults":2,"./utils":7}],7:[function(require,module,exports){
 function forEach(coll, f) {
   for (var i = 0; i < coll.length; i++) {
     f(coll[i], i);
@@ -223,7 +252,7 @@ function uniqueCharacters(s) {
 exports.forEach = forEach;
 exports.uniqueCharacters = uniqueCharacters;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var utils = require('./utils');
 
 var hintableSelectors = 'a, input:not([type=hidden]), textarea, select, ' +
@@ -249,21 +278,6 @@ function createHintsContainer(window) {
 
 function appendToDocument(window, element) {
   window.document.documentElement.appendChild(element);
-}
-
-View.prototype.addKeyHandlerMap = function(handlerMap) {
-  window.document.addEventListener(
-    'keydown', handlerForHandlerMap(handlerMap), true);
-};
-
-function handlerForHandlerMap(handlerMap) {
-  return function(e) {
-    var handler = handlerMap[e.keyCode] || handlerMap.fallback;
-    if (handler(e)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
 }
 
 View.prototype.clearHints = function() {
@@ -365,5 +379,5 @@ var mouseclick = function(window, target, mods) {
 
 exports.View = View;
 
-},{"./utils":6}]},{},[4])
+},{"./utils":7}]},{},[5])
 ;

@@ -7,37 +7,29 @@ function Controller(view, generatorFactory, options) {
   this.hints = {};
 }
 
-Controller.prototype.initialize = function() {
-  this.addHandlers();
-};
-
-Controller.prototype.addHandlers = function() {
-  var handlerMap = {
-    27: this.escape.bind(this),
-    13: this.activateCurrentHint.bind(this),
-    fallback: this.addCharacter.bind(this)
-  };
-  handlerMap[this.options.activateKey] = this.toggle.bind(this);
-  this.view.addKeyHandlerMap(handlerMap);
-};
-
 Controller.prototype.escape = function(e) {
+  var that = this;
+  return this.whenActive(function() {
+    that.deactivate();
+  });
+};
+
+Controller.prototype.whenActive = function(f) {
   if (this.active) {
-    this.deactivate();
+    f();
     return true;
   }
   return false;
 };
 
 Controller.prototype.addCharacter = function(e) {
-  if (this.active && !containsMods(e)) {
+  var that = this;
+  return this.whenActive(function() {
     var c = String.fromCharCode(e.keyCode).toLowerCase();
-    if (this.options.hintCharacters.indexOf(c) >= 0) {
-      this.updateSelection(c);
+    if (that.options.hintCharacters.indexOf(c) >= 0) {
+      that.updateSelection(c);
     }
-    return true;
-  }
-  return false;
+  });
 };
 
 Controller.prototype.updateSelection = function(s) {
@@ -54,30 +46,22 @@ Controller.prototype.withCurrentHint = function(f) {
 };
 
 Controller.prototype.activateCurrentHint = function(e) {
-  if (this.active) {
-    this.withCurrentHint(function(h){ h.activate(e); });
-    this.clearInput();
-    return true;
-  }
-  return false;
+  var that = this;
+  return this.whenActive(function() {
+    that.withCurrentHint(function(h){ h.activate(e); });
+    that.clearInput();
+  });
 };
 
 Controller.prototype.toggle = function(e) {
-  if (this.hasActivateModifier(e)) {
-    if (this.input.length > 0) {
-      this.clearInput();
-    } else if (this.active) {
-      this.deactivate();
-    } else {
-      this.activate();
-    }
-    return true;
+  if (this.input.length > 0) {
+    this.clearInput();
+  } else if (this.active) {
+    this.deactivate();
+  } else {
+    this.activate();
   }
-  return this.addCharacter(e);
-};
-
-Controller.prototype.hasActivateModifier = function(e) {
-  return e[this.options.activateModifier + "Key"];
+  return true;
 };
 
 Controller.prototype.activate = function() {
