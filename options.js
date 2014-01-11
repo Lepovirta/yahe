@@ -31,9 +31,9 @@
       if (m.checked)
         mod = m.value;
     });
-    ls.modifier = mod;
-    ls.hintcharacters = hintchars.value || dfs.hintcharacters;
-    ls.activate_key = activate_key.value[0] || dfs.activate_key;
+    ls.activateModifier = mod;
+    ls.hintCharacters = hintchars.value || dfs.hintcharacters;
+    ls.activateKey = activate_key.value[0] || dfs.activate_key;
 
     saved.style.display = "block";
     window.setTimeout(function() {

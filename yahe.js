@@ -1,258 +1,360 @@
-(function(chrome, window){
-  var globals = {
-    hint_types: 'a, input:not([type=hidden]), textarea, select, ' +
-      'button, [onclick], [onmousedown]',
-    container_id: 'chrome_yahe_container',
-    hint_class: 'chrome_yahe_hint',
-    hilight_class: 'chrome_yahe_hilight',
-    activate_modifier: 'ctrl',
-    activate_keycode: 77,
-    hintcharacters: 'fdjkghslrueicnxmowabzpt'
-  }, doc = window.document;
+;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+function Controller(view, generatorFactory, options) {
+  this.view = view;
+  this.generatorFactory = generatorFactory;
+  this.options = options;
+  this.active = false;
+  this.input = "";
+  this.hints = {};
+}
 
-  // YAHE constructor
-  var mk_yahe = function() {
-    var that = {}, hintsobj, input = "",
-        active = false, selected_el;
+Controller.prototype.initialize = function() {
+  this.addHandlers();
+};
 
-    that.newhints = function() {
-      that.deactivate();
-      hintsobj = create_hints();
-      doc.documentElement.appendChild(hintsobj.container);
-      active = true;
-    };
-
-    that.deactivate = function() {
-      if (active) {
-        doc.documentElement.removeChild(hintsobj.container);
-        that.clear_input();
-        active = false;
-      }
-    };
-
-    that.clear_input = function() {
-      input = "";
-      dehilight();
-      selected_el = undefined;
-    };
-
-    that.append_input = function(c) {
-      input += c;
-      select_hint(input);
-    };
-
-    that.keydown = function(e) {
-      var handler = keyhandlers[e.keyCode], r;
-      if (!handler)
-        handler = keyhandlers['default'];
-      r = handler(e);
-      if (r) {
-        e.stopPropagation();
-        e.preventDefault();
-      }
-    };
-
-    var open_selected = (function() {
-      var types = ['text', 'password', 'search', 'tel', 'url', 'email',
-                   'number', 'datetime', 'datetime-local'],
-          tags = ['INPUT', 'TEXTAREA', 'SELECT'];
-      var is_type = function(el) {
-        return types.some(function(x) {
-          return el.type === x;
-        });
-      };
-      var is_tag = function(el) {
-        return tags.some(function(x) {
-          return el.tagName === x;
-        });
-      };
-
-      var focus_or_click = function(el, fo, mc) {
-        return ((el.tagName === 'INPUT' && is_type(el)) ||
-                el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
-      };
-
-      return function(e) {
-        if (selected_el) {
-          var node = selected_el.node;
-          if (focus_or_click(node))
-            node.focus();
-          else
-            mouseclick(node, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
-          if (is_tag(node))
-            that.deactivate();
-        }
-      };
-    }());
-
-    var select_hint = function(query) {
-      var el = hintsobj.hints[query.toLowerCase()];
-      if (typeof el !== 'undefined') {
-        dehilight();
-        selected_el = el;
-        hilight();
-      }
-    };
-
-    var dehilight = function() {
-      if (selected_el) {
-        var re = new RegExp("(\\s|^)" + globals.hilight_class + "(\\s|$)");
-        selected_el.span.className = selected_el.span.className.replace(re, '');
-      }
-    };
-
-    var hilight = function() {
-      if (selected_el)
-        selected_el.span.className += ' ' + globals.hilight_class;
-    };
-
-    var keyhandlers = {
-      default: function(e) {
-        if (active && !has_modifiers(e)) {
-          var c = String.fromCharCode(e.keyCode).toLowerCase();
-          if (globals.hintcharacters.indexOf(c) >= 0)
-            that.append_input(c);
-          e.preventDefault();
-          e.stopPropagation();
-          return true;
-        }
-        return false;
-      },
-      27: function(e) { // escape
-        if (!active) return false;
-        that.deactivate();
-        return true;
-      },
-      13: function(e) { // return
-        if (!active) return false;
-        open_selected(e);
-        that.clear_input();
-        return true;
-      }
-    };
-    keyhandlers[globals.activate_keycode] = function(e) {
-      var r = true, hm = has_mod(e);
-      if (active) {
-        if (hm && input.length > 0)
-          that.clear_input();
-        else if (hm)
-          that.deactivate();
-        else
-          r = keyhandlers.default(e);
-      } else if (hm) {
-        that.newhints();
-      } else { return false; }
-      return r;
-    };
-
-    return that;
+Controller.prototype.addHandlers = function() {
+  var handlerMap = {
+    27: this.escape.bind(this),
+    13: this.activateCurrentHint.bind(this),
+    fallback: this.addCharacter.bind(this)
   };
+  handlerMap[this.options.activateKey] = this.toggle.bind(this);
+  this.view.addKeyHandlerMap(handlerMap);
+};
 
-  // Helper functions
+Controller.prototype.escape = function(e) {
+  if (this.active) {
+    this.deactivate();
+    return true;
+  }
+  return false;
+};
 
-  var forEach = function(list, cb) {
-    for (var i = 0; i < list.length; i++)
-      cb(list[i], i, list);
+Controller.prototype.addCharacter = function(e) {
+  if (this.active && !containsMods(e)) {
+    var c = String.fromCharCode(e.keyCode).toLowerCase();
+    if (this.options.hintCharacters.indexOf(c) >= 0) {
+      this.updateSelection(c);
+    }
+    return true;
+  }
+  return false;
+};
+
+Controller.prototype.updateSelection = function(s) {
+  this.withCurrentHint(function(h) { h.dehilight(); });
+  this.input += s;
+  this.withCurrentHint(function(h) { h.hilight(); });
+};
+
+Controller.prototype.withCurrentHint = function(f) {
+  var hint = this.currentHint();
+  if (hint) {
+    f(hint);
+  }
+};
+
+Controller.prototype.activateCurrentHint = function(e) {
+  if (this.active) {
+    this.withCurrentHint(function(h){ h.activate(e); });
+    this.clearInput();
+    return true;
+  }
+  return false;
+};
+
+Controller.prototype.toggle = function(e) {
+  if (this.hasActivateModifier(e)) {
+    if (this.input.length > 0) {
+      this.clearInput();
+    } else if (this.active) {
+      this.deactivate();
+    } else {
+      this.activate();
+    }
+    return true;
+  }
+  return this.addCharacter(e);
+};
+
+Controller.prototype.hasActivateModifier = function(e) {
+  return e[this.options.activateModifier + "Key"];
+};
+
+Controller.prototype.activate = function() {
+  this.active = true;
+  this.newHints();
+  this.view.showHints();
+};
+
+Controller.prototype.newHints = function() {
+  this.hints = this.view.generateHints(this.generatorFactory());
+};
+
+Controller.prototype.deactivate = function() {
+  this.active = false;
+  this.clearInput();
+  this.view.clearHints();
+};
+
+Controller.prototype.clearInput = function() {
+  var hint = this.currentHint();
+  if (hint) {
+    hint.dehilight();
+  }
+  this.input = "";
+};
+
+Controller.prototype.currentHint = function() {
+  return this.hints[this.input.toLowerCase()];
+};
+
+function containsMods(e) {
+  return (e.ctrlKey || e.altKey || e.metaKey);
+}
+
+exports.Controller = Controller;
+
+},{}],2:[function(require,module,exports){
+function hintIdGenerator(hintCharacters) {
+  var counter = 0, len = hintCharacters.length;
+  return function() {
+    var num = counter, iter = 0, text = '', n;
+    while (num >= 0) {
+      n = num;
+      num -= Math.pow(len, 1 + iter);
+      iter++;
+    }
+    for (var i = 0; i < iter; i++) {
+      text = hintCharacters[n % len] + text;
+      n = Math.floor(n / len);
+    }
+    counter++;
+    return text;
   };
+}
 
-  var mouseclick = function(target, ctrl, alt, shift, meta) {
-    var ev = doc.createEvent('MouseEvent');
-    ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
-                      ctrl, alt, shift, meta, 0, null);
-    target.dispatchEvent(ev);
-  };
+exports.hintIdGenerator = hintIdGenerator;
 
-  var load_options = function(ls) {
-    var mod = ls.modifier,
-        hintchars = ls.hintcharacters,
-        key = ls.activate_key;
-    if (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
-      globals.activate_modifier = mod;
-    if (hintchars)
-      globals.hintcharacters = filter_hintcharacters(hintchars);
-    if (key)
-      globals.activate_keycode = key.toUpperCase().charCodeAt(0) || globals.activate_keycode;
-  };
+},{}],3:[function(require,module,exports){
+(function(chrome, window) {
+  var Controller = require("./controller").Controller,
+      View = require("./view").View,
+      idGeneratorFactory = require("./hintidgen").hintIdGenerator,
+      optionParser = require("./optionparser").optionParser;
 
-  var has_mod = function(e) {
-    return e[globals.activate_modifier + 'Key'];
-  };
-
-  var filter_hintcharacters = function(hintchars) {
-    var hc = [], hcdb = {};
-    forEach(hintchars.toLowerCase(), function(c) {
-      if (!hcdb[c]) {
-        hc.push(c);
-        hcdb[c] = true;
-      }
-    });
-    return hc.join('');
-  };
-
-  var in_viewport = function(cr) {
-    return (cr.bottom > 0 && cr.right > 0 &&
-            cr.width > 0 && cr.height > 0);
-  };
-
-  var create_hints = function() {
-    var nodes = doc.querySelectorAll(globals.hint_types),
-        container = doc.createElement('div'),
-        hints = {},
-        obj = {nodes: nodes, container: container, hints: hints},
-        hintid = hintid_generator(globals.hintcharacters);
-
-    container.id = globals.container_id;
-
-    forEach(nodes, function(node) {
-      var cr = node.getBoundingClientRect();
-      if (!in_viewport(cr)) return;
-
-      var span = doc.createElement('span'),
-          hint = {node: node, span: span},
-          hint_id = hintid(),
-          span_top = window.pageYOffset + (cr.top > 0 ? cr.top : 0),
-          span_left = window.pageXOffset + (cr.left > 0 ? cr.left : 0) - span.offsetWidth;
-
-      span.innerText = hint_id;
-      span.className = globals.hint_class;
-      span.style.top = span_top + "px";
-      span.style.left = span_left + "px";
-
-      container.appendChild(span);
-      hints[hint_id] = hint;
-    });
-
-    return obj;
-  };
-
-  var hintid_generator = function(hintcharacters) {
-    var counter = 0, len = hintcharacters.length;
-    var gen_hintid = function() {
-      var num = counter, iter = 0, text = '', n;
-      while (num >= 0) {
-        n = num;
-        num -= Math.pow(len, 1 + iter);
-        iter++;
-      }
-      for (var i = 0; i < iter; i++) {
-        text = hintcharacters[n % len] + text;
-        n = Math.floor(n / len);
-      }
-      counter++;
-      return text;
-    };
-    return gen_hintid;
-  };
-
-  var has_modifiers = function(e) {
-    return (e.ctrlKey || e.altKey || e.metaKey);
-  };
-
-  // load options, and create and bind YAHE
   chrome.extension.sendRequest({method: "getOptions"}, function(response) {
-    var yahe;
-    load_options(response),
-    yahe = mk_yahe();
-    doc.addEventListener('keydown', yahe.keydown, true);
+    var options = optionParser(response),
+        view = new View(window),
+        generator = idGeneratorFactory.bind(null, options.hintCharacters),
+        controller = new Controller(view, generator, options);
+
+    controller.initialize();
   });
 }).call(null, chrome, window);
+
+},{"./controller":1,"./hintidgen":2,"./optionparser":4,"./view":6}],4:[function(require,module,exports){
+var utils = require("./utils");
+
+var hintCharacters = "fdjkghslrueicnxmowabzpt",
+    activateModifier = "ctrl",
+    activateKey = 77;
+
+function optionParser(raw) {
+  return {
+    activateKey: getActivateKey(raw),
+    activateModifier: getActivateModifier(raw),
+    hintCharacters: getHintCharacters(raw)
+  };
+}
+
+function getActivateKey(raw) {
+  var key = raw.activateKey;
+  if (typeof key === "string") {
+    return key.toUpperCase().charCodeAt(0) || activateKey;
+  }
+  return activateKey;
+}
+
+function getActivateModifier(raw) {
+  var mod = raw.activateModifier;
+  if (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
+    return mod;
+  return activateModifier;
+}
+
+function getHintCharacters(raw) {
+  var hintChars = raw.hintCharacters;
+  if (typeof hintChars === "string") {
+    return utils.uniqueCharacters(hintChars.toLowerCase());
+  }
+  return hintCharacters;
+}
+
+exports.optionParser = optionParser;
+
+},{"./utils":5}],5:[function(require,module,exports){
+function forEach(coll, f) {
+  for (var i = 0; i < coll.length; i++) {
+    f(coll[i], i);
+  }
+}
+
+function uniqueCharacters(s) {
+  var buffer = [], seen = {};
+  forEach(s, function(c) {
+    if (!seen[c]) {
+      buffer.push(c);
+      seen[c] = true;
+    }
+  });
+  return buffer.join('');
+}
+
+exports.forEach = forEach;
+exports.uniqueCharacters = uniqueCharacters;
+
+},{}],6:[function(require,module,exports){
+var utils = require('./utils');
+
+var hintableSelectors = 'a, input:not([type=hidden]), textarea, select, ' +
+      'button, [onclick], [onmousedown]',
+    inputTypes = ['text', 'password', 'search', 'tel', 'url', 'email',
+                  'number', 'datetime', 'datetime-local'],
+    containerId = "yahe-hint-container",
+    hintClass = "yahe-hint-node",
+    hintHilightClass = "yahe-hint-hilight";
+
+function View(window) {
+  this.window = window;
+  this.container = createHintsContainer(window);
+  appendToDocument(window, this.container);
+}
+
+function createHintsContainer(window) {
+  var container = window.document.createElement('div');
+  container.id = containerId;
+  container.style.display = "none";
+  return container;
+}
+
+function appendToDocument(window, element) {
+  window.document.documentElement.appendChild(element);
+}
+
+View.prototype.addKeyHandlerMap = function(handlerMap) {
+  window.document.addEventListener(
+    'keydown', handlerForHandlerMap(handlerMap), true);
+};
+
+function handlerForHandlerMap(handlerMap) {
+  return function(e) {
+    var handler = handlerMap[e.keyCode] || handlerMap.fallback;
+    if (handler(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+}
+
+View.prototype.clearHints = function() {
+  this.container.innerHTML = "";
+  this.hideHints();
+};
+
+View.prototype.showHints = function() {
+  this.container.style.display = "block";
+};
+
+View.prototype.hideHints = function() {
+  this.container.style.display = "none";
+};
+
+View.prototype.generateHints = function(idGenerator) {
+  var nodes = getHintableNodes(this.window),
+      hints = {},
+      that = this,
+      fragment = window.document.createDocumentFragment();
+
+  utils.forEach(nodes, function(node) {
+    if (inViewPort(node)) {
+      var hintId = idGenerator(),
+          hint = new Hint(window, hintId, node);
+      fragment.appendChild(hint.hintNode);
+      hints[hintId] = hint;
+    }
+  });
+
+  this.container.appendChild(fragment);
+
+  return hints;
+};
+
+function getHintableNodes(window) {
+  return window.document.querySelectorAll(hintableSelectors);
+}
+
+function inViewPort(link) {
+  var cr = link.getBoundingClientRect();
+  return (cr.bottom > 0 && cr.right > 0 &&
+          cr.width > 0 && cr.height > 0);
+};
+
+function Hint(window, hintId, hintable) {
+  this.hintId = hintId;
+  this.hintable = hintable;
+  this.hintNode = createHintNode(window, hintId, hintable);
+}
+
+function createHintNode(window, hintId, hintable) {
+  var cr = hintable.getBoundingClientRect(),
+      span = window.document.createElement('span'),
+      span_top = window.pageYOffset + (cr.top > 0 ? cr.top : 0),
+      span_left = window.pageXOffset + (cr.left > 0 ? cr.left : 0) - span.offsetWidth;
+
+  span.innerText = hintId;
+  span.className = hintClass;
+  span.style.top = span_top + "px";
+  span.style.left = span_left + "px";
+  return span;
+}
+
+Hint.prototype.hilight = function() {
+  this.hintNode.className += " " + hintHilightClass;
+};
+
+Hint.prototype.dehilight = function() {
+  var re = new RegExp("(\\s|^)" + hintHilightClass + "(\\s|$)");
+  this.hintNode.className = this.hintNode.className.replace(re, '');
+};
+
+Hint.prototype.activate = function(modifiers) {
+  if (this.shouldFocus()) {
+    this.hintable.focus();
+  } else {
+    mouseclick(window, this.hintable, modifiers);
+  }
+};
+
+Hint.prototype.shouldFocus = function() {
+  var el = this.hintable;
+  return ((el.tagName === 'INPUT' && hasInputType(el)) ||
+          el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+};
+
+function hasInputType(element) {
+  return inputTypes.some(function(t) { return element.type === t; });
+}
+
+var mouseclick = function(window, target, mods) {
+  var ev = window.document.createEvent('MouseEvent');
+  ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
+                    mods.ctrlKey, mods.altKey, mods.shiftKey,
+                    mods.metaKey, 0, null);
+  target.dispatchEvent(ev);
+};
+
+exports.View = View;
+
+},{"./utils":5}]},{},[3])
+;
