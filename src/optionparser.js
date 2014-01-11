@@ -1,38 +1,33 @@
-var utils = require("./utils");
-
-var hintCharacters = "fdjkghslrueicnxmowabzpt",
-    activateModifier = "ctrl",
-    activateKey = 77;
+var utils = require("./utils"),
+    defaults = require("./defaults").defaultOptions;
 
 function optionParser(raw) {
   return {
-    activateKey: getActivateKey(raw),
-    activateModifier: getActivateModifier(raw),
-    hintCharacters: getHintCharacters(raw)
+    activateKey: getActivateKey(raw) || defaults.activateKey,
+    activateModifier: getActivateModifier(raw) || defaults.activateModifier,
+    hintCharacters: getHintCharacters(raw) || defaults.hintCharacters
   };
 }
 
 function getActivateKey(raw) {
   var key = raw.activateKey;
-  if (typeof key === "string") {
-    return key.toUpperCase().charCodeAt(0) || activateKey;
-  }
-  return activateKey;
+  return typeof key === "string"
+    ? key.toUpperCase().charCodeAt(0)
+    : null;
 }
 
 function getActivateModifier(raw) {
   var mod = raw.activateModifier;
-  if (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
-    return mod;
-  return activateModifier;
+  return (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
+    ? mod
+    : null;
 }
 
 function getHintCharacters(raw) {
   var hintChars = raw.hintCharacters;
-  if (typeof hintChars === "string") {
-    return utils.uniqueCharacters(hintChars.toLowerCase());
-  }
-  return hintCharacters;
+  return typeof hintChars === "string"
+    ? utils.uniqueCharacters(hintChars.toLowerCase())
+    : null;
 }
 
 exports.optionParser = optionParser;

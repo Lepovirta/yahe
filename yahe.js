@@ -116,6 +116,20 @@ function containsMods(e) {
 exports.Controller = Controller;
 
 },{}],2:[function(require,module,exports){
+var defaultOptions = {
+  // What hint characters to use in order of appearance.
+  hintCharacters: "fdjkghslrueicnxmowabzpt",
+
+  // Modifier key for activate key
+  activateModifier: "ctrl",
+
+  // Activation key code
+  activateKey: 77
+};
+
+exports.defaultOptions = defaultOptions;
+
+},{}],3:[function(require,module,exports){
 function hintIdGenerator(hintCharacters) {
   var counter = 0, len = hintCharacters.length;
   return function() {
@@ -136,7 +150,7 @@ function hintIdGenerator(hintCharacters) {
 
 exports.hintIdGenerator = hintIdGenerator;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function(chrome, window) {
   var Controller = require("./controller").Controller,
       View = require("./view").View,
@@ -153,47 +167,42 @@ exports.hintIdGenerator = hintIdGenerator;
   });
 }).call(null, chrome, window);
 
-},{"./controller":1,"./hintidgen":2,"./optionparser":4,"./view":6}],4:[function(require,module,exports){
-var utils = require("./utils");
-
-var hintCharacters = "fdjkghslrueicnxmowabzpt",
-    activateModifier = "ctrl",
-    activateKey = 77;
+},{"./controller":1,"./hintidgen":3,"./optionparser":5,"./view":7}],5:[function(require,module,exports){
+var utils = require("./utils"),
+    defaults = require("./defaults").defaultOptions;
 
 function optionParser(raw) {
   return {
-    activateKey: getActivateKey(raw),
-    activateModifier: getActivateModifier(raw),
-    hintCharacters: getHintCharacters(raw)
+    activateKey: getActivateKey(raw) || defaults.activateKey,
+    activateModifier: getActivateModifier(raw) || defaults.activateModifier,
+    hintCharacters: getHintCharacters(raw) || defaults.hintCharacters
   };
 }
 
 function getActivateKey(raw) {
   var key = raw.activateKey;
-  if (typeof key === "string") {
-    return key.toUpperCase().charCodeAt(0) || activateKey;
-  }
-  return activateKey;
+  return typeof key === "string"
+    ? key.toUpperCase().charCodeAt(0)
+    : null;
 }
 
 function getActivateModifier(raw) {
   var mod = raw.activateModifier;
-  if (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
-    return mod;
-  return activateModifier;
+  return (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
+    ? mod
+    : null;
 }
 
 function getHintCharacters(raw) {
   var hintChars = raw.hintCharacters;
-  if (typeof hintChars === "string") {
-    return utils.uniqueCharacters(hintChars.toLowerCase());
-  }
-  return hintCharacters;
+  return typeof hintChars === "string"
+    ? utils.uniqueCharacters(hintChars.toLowerCase())
+    : null;
 }
 
 exports.optionParser = optionParser;
 
-},{"./utils":5}],5:[function(require,module,exports){
+},{"./defaults":2,"./utils":6}],6:[function(require,module,exports){
 function forEach(coll, f) {
   for (var i = 0; i < coll.length; i++) {
     f(coll[i], i);
@@ -214,7 +223,7 @@ function uniqueCharacters(s) {
 exports.forEach = forEach;
 exports.uniqueCharacters = uniqueCharacters;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var utils = require('./utils');
 
 var hintableSelectors = 'a, input:not([type=hidden]), textarea, select, ' +
@@ -356,5 +365,5 @@ var mouseclick = function(window, target, mods) {
 
 exports.View = View;
 
-},{"./utils":5}]},{},[3])
+},{"./utils":6}]},{},[4])
 ;
