@@ -48,7 +48,12 @@ Controller.prototype.withCurrentHint = function(f) {
 Controller.prototype.activateCurrentHint = function(e) {
   var that = this;
   return this.whenActive(function() {
-    that.withCurrentHint(function(h){ h.activate(e); });
+    that.withCurrentHint(function(h){
+      h.activate(e);
+      if (h.shouldFocus()) {
+        that.deactivate();
+      }
+    });
     that.clearInput();
   });
 };
