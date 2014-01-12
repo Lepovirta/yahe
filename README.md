@@ -32,8 +32,8 @@ There are two ways to install this extension: from this extension's
 
 ### Installing from repository sources
 
-1. Clone YAHE repository: `git clone git://github.com/jkpl/chrome-yahe.git` or
-   `git clone git@bitbucket.org:jkpl/chrome-yahe.git`
+1. Clone YAHE repository: `git clone git://github.com/jkpl/yahe.git` or
+   `git clone git@bitbucket.org:jkpl/yahe.git`
 2. Fire up you Chrome/Chromium browser, and go to the extensions section of the
    settings page.
 3. Enable the developer mode by checking the developer mode checkbox.
