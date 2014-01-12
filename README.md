@@ -44,6 +44,23 @@ If you want to update the extension, pull the latest changes from the
 repository to your cloned directory (`git pull`), and either restart your
 browser or hit the extension's reload button in extensions page.
 
+## Extending the script
+
+If you want to edit the source code, I recommend installing the following
+tools:
+
+* [Node.JS][nodejs]
+* [NPM][] (usually ships with Node.JS)
+* [Browserify][] with NPM
+
+All the code for YAHE is located in the `src/` directory, and `yahe.js` is just
+the build output. If you have Browserify installed, you can execute `build.sh`
+file using a Bourne shell (`sh`) compatible shell to build the final script.
+
+The entry point for YAHE is in the `main.js` file, which does all the
+initialization. It imports most of the code from other source files, and it's a
+good place to start reading the code.
+
 ## License
 
 (2-clause BSD license)
@@ -75,3 +92,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [hhdwb]: https://bitbucket.org/portix/dwb/src/0583e44d0164/scripts/hints.js
 [kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
+[nodejs]: http://nodejs.org/
+[npm]: https://npmjs.org/
+[browserify]: http://browserify.org/
