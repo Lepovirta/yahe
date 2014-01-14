@@ -1,17 +1,34 @@
+var possibleModifiers = ["ctrl", "alt", "meta", "shift"];
+
 function KeyMapper(window) {
   this.window = window;
 }
 
 KeyMapper.prototype.addHandler = function(keyCode, modifiers, handler) {
+  var modifierMap = createModifierMap(modifiers);
   addKeyDownHandler(window, handler, function(e) {
-    return e.keyCode === keyCode && modifiersMatch(modifiers, e);
+    return e.keyCode === keyCode && modifiersMatch(modifierMap, e);
   });
 };
 
-function modifiersMatch(modifiers, e) {
-  return modifiers === null || modifiers.every(function(mod) {
-    return e[mod + "Key"];
-  });
+function createModifierMap(modifiers) {
+  function addModifier(o, mod) {
+    o[mod] = true;
+    return o;
+  }
+  return modifiers === null
+    ? null
+    : modifiers.reduce(addModifier, {});
+}
+
+function modifiersMatch(modifierMap, e) {
+  function modMatch(modifier) {
+    var expected = modifierMap[modifier] || false;
+    var actual = e[modifier + "Key"] || false;
+    return expected === actual;
+  }
+
+  return modifierMap === null || possibleModifiers.every(modMatch);
 }
 
 function addKeyDownHandler(window, handler, predicate) {
