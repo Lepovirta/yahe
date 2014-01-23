@@ -65,7 +65,7 @@ good place to start reading the code.
 
 (2-clause BSD license)
 
-Copyright (c) 2012, Jaakko Pallari
+Copyright (c) 2012-2014, Jaakko Pallari
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
