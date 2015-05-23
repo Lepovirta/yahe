@@ -3,48 +3,62 @@
   <head>
     <title>Yet Another Hints Extension options</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" type="text/css" href="options.css" />
+    <style>
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      li {
+        margin: 0;
+      }
+    </style>
   </head>
   <body>
-    <div id="head">
-      <h1 id="title">
-        <a id="titlea" href="http://github.com/jkpl/yahe">Yet Another Hints Extension</a>
-        options
-      </h1>
-    </div>
-    <div id="content">
-      <form id="options_form">
-        <div class="form-el">
-          <label class="form-el-label" for="hintcharacters">Hint characters</label>
-          <div class="form-el-controls">
-            <input type="text" id="hintcharacters" />
-          </div>
-        </div>
-        <div class="form-el">
-          <label class="form-el-label" for="activate_key">Shortcut key</label>
-          <div class="form-el-controls">
-            <input type="text" id="activate_key" />
-          </div>
-        </div>
-        <div class="form-el">
-          <div class="form-el-label">Modifier for shortcut key</div>
-          <div class="form-el-controls">
+    <p>
+      <label for="hintcharacters">
+        <span>Hint characters: </span>
+        <input type="text" id="hintcharacters" />
+      </label>
+    </p>
+
+    <p>
+      <label for="activate_key">
+        <span>Shortcut key: </span>
+        <input type="text" id="activate_key" />
+      </label>
+    </p>
+
+    <fieldset>
+      <legend>Modifier for shortcut key</legend>
+      <ul>
+        <li>
+          <label for="mod_ctrl">
             <input type="radio" value="ctrl" name="mod" checked="true" id="mod_ctrl" />
-            <label for="mod_ctrl">Ctrl</label><br />
+            Ctrl
+          </label>
+        </li>
+        <li>
+          <label for="mod_alt">
             <input type="radio" value="alt" name="mod" id="mod_alt" />
-            <label for="mod_alt">Alt</label><br />
+            Alt
+          </label>
+        </li>
+        <li>
+          <label for="mod_meta">
             <input type="radio" value="meta" name="mod" id="mod_meta" />
-            <label for="mod_meta">Meta / Command</label>
-          </div>
-        </div>
-        <div class="form-el">
-          <div class="form-el-controls">
-            <input type="submit" value="Save" />
-          </div>
-        </div>
-        <p class="saved" style="display:none;">Settings saved!</p>
-      </form>
-    </div>
+            Meta / Command
+          </label>
+        </li>
+      </ul>
+    </fieldset>
+
+    <p>
+      <input type="submit" value="Save" id="save" />
+    </p>
+
+    <p id="status">
+    </p>
     <script type="application/javascript" src="options.js"></script>
   </body>
 </html>

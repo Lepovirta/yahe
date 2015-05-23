@@ -1,49 +1,59 @@
-(function(window){
-  var doc = window.document,
-      ls = window.localStorage,
-      hintchars = doc.getElementById('hintcharacters'),
-      activate_key = doc.getElementById('activate_key'),
-      mod_ctrl = doc.getElementById('mod_ctrl'),
-      mod_alt = doc.getElementById('mod_alt'),
-      mod_meta = doc.getElementById('mod_meta'),
-      form = doc.getElementById('options_form'),
-      saved = doc.getElementsByClassName('saved')[0],
-      dfs = {
-        modifier: 'ctrl',
-        hintcharacters: 'fdjkghslrueicnxmowabzpt',
-        activate_key: 'm'
-      };
+var defaults = {
+  activateModifier: 'ctrl',
+  hintCharacters: 'fdjkghslrueicnxmowabzpt',
+  activateKey: 'm'
+};
 
-  var load_options = function() {
-    var modifier = ls.modifier || dfs.modifier,
-        selected_mod = doc.getElementById('mod_' + modifier);
-    hintchars.value = ls.hintcharacters || dfs.hintcharacters;
-    activate_key.value = ls.activate_key || dfs.activate_key;
-    if (selected_mod)
-      selected_mod.checked = true;
-    else
-      mod_ctrl.checked = true;
+function getElements() {
+  return {
+    hintCharacters: document.getElementById('hintcharacters'),
+    activateKey: document.getElementById('activate_key'),
+    modifiers: {
+      ctrl: document.getElementById('mod_ctrl'),
+      alt: document.getElementById('mod_alt'),
+      meta: document.getElementById('mod_meta')
+    }
   };
+}
 
-  var save_options = function() {
-    var mod = dfs.modifier;
-    [mod_ctrl, mod_alt, mod_meta].forEach(function(m) {
-      if (m.checked)
-        mod = m.value;
-    });
-    ls.activateModifier = mod;
-    ls.hintCharacters = hintchars.value || dfs.hintcharacters;
-    ls.activateKey = activate_key.value[0] || dfs.activate_key;
+function selectedModifier(modifiers) {
+  if (modifiers.ctrl.checked) return 'ctrl';
+  if (modifiers.alt.checked) return 'alt';
+  if (modifiers.meta.checked) return 'meta';
+  return defaults.modifier;
+}
 
-    saved.style.display = "block";
-    window.setTimeout(function() {
-      saved.style.display = "none";
-    }, 2000, false);
+function saveOptions() {
+  var elements = getElements();
+  var options = {
+    hintCharacters: elements.hintCharacters.value || defaults.hintCharacters,
+    activateKey: elements.activateKey.value || defaults.activateKey,
+    activateModifier: selectedModifier(elements.modifiers)
   };
+  chrome.storage.local.set(options, function() {
+    showStatus('Options saved');
+  });
+}
 
-  load_options();
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    save_options();
-  }, true);
-}).call(null, window);
+function restoreOptions() {
+  var elements = getElements();
+  chrome.storage.local.get(defaults, function(options) {
+    var mod = options.activateModifier;
+    elements.hintCharacters.value = options.hintCharacters;
+    elements.activateKey.value = options.activateKey;
+    elements.modifiers.ctrl.checked = mod === 'ctrl';
+    elements.modifiers.alt.checked = mod === 'alt';
+    elements.modifiers.meta.checked = mod === 'meta';
+  });
+}
+
+function showStatus(text) {
+  var status = document.getElementById('status');
+  status.textContent = text;
+  window.setTimeout(function() {
+    status.textContent = '';
+  }, 750, false);
+}
+
+document.addEventListener('DOMContentLoaded', restoreOptions);
+document.getElementById('save').addEventListener('click', saveOptions);

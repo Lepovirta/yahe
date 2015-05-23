@@ -2,10 +2,11 @@ var utils = require("./utils"),
     defaults = require("./defaults");
 
 function optionParser(raw) {
+  var raw_ = raw || {};
   return {
-    activateKey: getActivateKey(raw) || defaults.activateKey,
-    activateModifier: getActivateModifier(raw) || defaults.activateModifier,
-    hintCharacters: getHintCharacters(raw) || defaults.hintCharacters
+    activateKey: getActivateKey(raw_) || defaults.activateKey,
+    activateModifier: getActivateModifier(raw_) || defaults.activateModifier,
+    hintCharacters: getHintCharacters(raw_) || defaults.hintCharacters
   };
 }
 
@@ -18,9 +19,8 @@ function getActivateKey(raw) {
 
 function getActivateModifier(raw) {
   var mod = raw.activateModifier;
-  return (mod === 'alt' || mod === 'meta' || mod === 'ctrl')
-    ? mod
-    : null;
+  var isValidMod = (mod === 'alt' || mod === 'meta' || mod === 'ctrl');
+  return isValidMod ? mod : null;
 }
 
 function getHintCharacters(raw) {

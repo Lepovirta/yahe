@@ -5,7 +5,7 @@
       optionParser = require("./optionparser"),
       KeyMapper = require("./keymapper");
 
-  chrome.extension.sendRequest({method: "getOptions"}, function(response) {
+  chrome.storage.local.get(null, function(response) {
     var options = optionParser(response),
         keyMapper = new KeyMapper(window),
         view = new View(window),
