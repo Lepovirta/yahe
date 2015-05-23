@@ -1,15 +1,21 @@
 var possibleModifiers = ["ctrl", "alt", "meta", "shift"];
 
 function KeyMapper(window) {
-  this.window = window;
-}
+  var self = this;
 
-KeyMapper.prototype.addHandler = function(keyCode, modifiers, handler) {
-  var modifierMap = createModifierMap(modifiers);
-  addKeyDownHandler(window, handler, function(e) {
-    return e.keyCode === keyCode && modifiersMatch(modifierMap, e);
-  });
-};
+  self.addHandler = function(keyCode, modifiers, handler) {
+    var modifierMap = createModifierMap(modifiers);
+    addKeyDownHandler(window, handler, function(e) {
+      return e.keyCode === keyCode && modifiersMatch(modifierMap, e);
+    });
+  };
+
+  self.addDefaultNonModifierHandler = function(handler) {
+    addKeyDownHandler(window, handler, function(e) {
+      return noModifiers(e);
+    });
+  };
+}
 
 function createModifierMap(modifiers) {
   function addModifier(o, mod) {
@@ -41,14 +47,8 @@ function addKeyDownHandler(window, handler, predicate) {
   window.document.addEventListener('keydown', h, true);
 }
 
-KeyMapper.prototype.addDefaultNonModifierHandler = function(handler) {
-  addKeyDownHandler(window, handler, function(e) {
-    return noModifiers(e);
-  });
-};
-
 function noModifiers(e) {
   return !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey;
 }
 
-exports.KeyMapper = KeyMapper;
+module.exports = KeyMapper;

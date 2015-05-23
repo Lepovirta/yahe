@@ -1,104 +1,93 @@
-function Controller(view, generatorFactory, options) {
-  this.view = view;
-  this.generatorFactory = generatorFactory;
-  this.options = options;
-  this.active = false;
-  this.input = "";
-  this.hints = {};
-}
+function Controller(view, hintGenerator, options) {
+  var self = this;
+  var active = false;
+  var input = "";
+  var hints = {};
 
-Controller.prototype.escape = function(e) {
-  var that = this;
-  return this.whenActive(function() {
-    that.deactivate();
-  });
-};
+  self.escape = function(e) {
+    return whenActive(deactivate);
+  };
 
-Controller.prototype.whenActive = function(f) {
-  if (this.active) {
-    f();
-    return true;
-  }
-  return false;
-};
-
-Controller.prototype.addCharacter = function(e) {
-  var that = this;
-  return this.whenActive(function() {
-    var c = String.fromCharCode(e.keyCode).toLowerCase();
-    if (that.options.hintCharacters.indexOf(c) >= 0) {
-      that.updateSelection(c);
+  function whenActive(f) {
+    if (active) {
+      f();
+      return true;
     }
-  });
-};
-
-Controller.prototype.updateSelection = function(s) {
-  this.withCurrentHint(function(h) { h.dehilight(); });
-  this.input += s;
-  this.withCurrentHint(function(h) { h.hilight(); });
-};
-
-Controller.prototype.withCurrentHint = function(f) {
-  var hint = this.currentHint();
-  if (hint) {
-    f(hint);
+    return false;
   }
-};
 
-Controller.prototype.activateCurrentHint = function(e) {
-  var that = this;
-  return this.whenActive(function() {
-    that.withCurrentHint(function(h){
-      h.activate(e);
-      if (h.shouldFocus()) {
-        that.deactivate();
+  self.addCharacter = function(e) {
+    return whenActive(function() {
+      var c = String.fromCharCode(e.keyCode).toLowerCase();
+      if (options.hintCharacters.indexOf(c) >= 0) {
+        updateSelection(c);
       }
     });
-    that.clearInput();
-  });
-};
+  };
 
-Controller.prototype.toggle = function(e) {
-  if (this.input.length > 0) {
-    this.clearInput();
-  } else if (this.active) {
-    this.deactivate();
-  } else {
-    this.activate();
+  function updateSelection(s) {
+    withCurrentHint(function(h) { h.dehilight(); });
+    input += s;
+    withCurrentHint(function(h) { h.hilight(); });
   }
-  return true;
-};
 
-Controller.prototype.activate = function() {
-  this.active = true;
-  this.newHints();
-  this.view.showHints();
-};
-
-Controller.prototype.newHints = function() {
-  this.hints = this.view.generateHints(this.generatorFactory());
-};
-
-Controller.prototype.deactivate = function() {
-  this.active = false;
-  this.clearInput();
-  this.view.clearHints();
-};
-
-Controller.prototype.clearInput = function() {
-  var hint = this.currentHint();
-  if (hint) {
-    hint.dehilight();
+  function withCurrentHint(f) {
+    var hint = currentHint();
+    if (hint) {
+      f(hint);
+    }
   }
-  this.input = "";
-};
 
-Controller.prototype.currentHint = function() {
-  return this.hints[this.input.toLowerCase()];
-};
+  self.activateCurrentHint = function(e) {
+    return whenActive(function() {
+      withCurrentHint(function(h){
+        h.activate(e);
+        if (h.shouldFocus()) {
+          deactivate();
+        }
+      });
+      clearInput();
+    });
+  };
 
-function containsMods(e) {
-  return (e.ctrlKey || e.altKey || e.metaKey);
+  self.toggle = function(e) {
+    if (input.length > 0) {
+      clearInput();
+    } else if (active) {
+      deactivate();
+    } else {
+      activate();
+    }
+    return true;
+  };
+
+  function activate() {
+    active = true;
+    newHints();
+    view.showHints();
+  }
+
+  function newHints() {
+    hints = view.generateHints(hintGenerator());
+  }
+
+  function deactivate() {
+    active = false;
+    clearInput();
+    view.clearHints();
+  }
+
+  function clearInput() {
+    var hint = currentHint();
+    if (hint) {
+      hint.dehilight();
+    }
+    input = "";
+  }
+
+  function currentHint() {
+    return hints[input.toLowerCase()];
+  }
 }
 
-exports.Controller = Controller;
+module.exports = Controller;

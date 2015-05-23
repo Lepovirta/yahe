@@ -1,5 +1,6 @@
 function hintIdGenerator(hintCharacters) {
   var counter = 0, len = hintCharacters.length;
+
   return function() {
     var num = counter, iter = 0, text = '', n;
     while (num >= 0) {
@@ -16,4 +17,4 @@ function hintIdGenerator(hintCharacters) {
   };
 }
 
-exports.hintIdGenerator = hintIdGenerator;
+module.exports = hintIdGenerator;

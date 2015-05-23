@@ -1,4 +1,4 @@
-var defaultOptions = {
+var defaults = {
   // What hint characters to use in order of appearance.
   hintCharacters: "fdjkghslrueicnxmowabzpt",
 
@@ -9,4 +9,4 @@ var defaultOptions = {
   activateKey: 77
 };
 
-exports.defaultOptions = defaultOptions;
+module.exports = defaults;

@@ -1,17 +1,63 @@
 var utils = require('./utils');
+var createClicker = require('./clicker');
 
-var hintableSelectors = 'a, input:not([type=hidden]), textarea, select, ' +
-      'button, [onclick], [onmousedown]',
-    inputTypes = ['text', 'password', 'search', 'tel', 'url', 'email',
-                  'number', 'datetime', 'datetime-local'],
-    containerId = "yahe-hint-container",
-    hintClass = "yahe-hint-node",
-    hintHilightClass = "yahe-hint-hilight";
+var hintableSelectorsArr = [
+  'a',
+  'input:not([type=hidden])',
+  'textarea',
+  'select',
+  'button',
+  '[onclick]',
+  '[onmousedown]'
+]
+
+var inputTypes = [
+  'text', 'password', 'search', 'tel', 'url', 'email',
+  'number', 'datetime', 'datetime-local'
+];
+
+var hintableSelectors = hintableSelectorsArr.join(', ');
+var containerId = "yahe-hint-container";
+var hintClass = "yahe-hint-node";
+var hintHilightClass = "yahe-hint-hilight";
 
 function View(window) {
-  this.window = window;
-  this.container = createHintsContainer(window);
-  appendToDocument(window, this.container);
+  var self = this;
+  var clicker = createClicker(window);
+  var container = createHintsContainer(window);
+  appendToDocument(window, container);
+
+  self.clearHints = function() {
+    container.innerHTML = "";
+    self.hideHints();
+  };
+
+  self.showHints = function() {
+    container.style.display = "block";
+  };
+
+  self.hideHints = function() {
+    container.style.display = "none";
+  };
+
+  self.generateHints = function(idGenerator) {
+    var nodes = getHintableNodes(window),
+        hints = {},
+        fragment = window.document.createDocumentFragment();
+
+    utils.forEach(nodes, function(node) {
+      if (inViewPort(node)) {
+        var hintId = idGenerator(),
+            hint = new Hint(window, clicker, hintId, node);
+        fragment.appendChild(hint.hintNode);
+        hints[hintId] = hint;
+      }
+    });
+
+    container.appendChild(fragment);
+
+    return hints;
+  };
 }
 
 function createHintsContainer(window) {
@@ -25,39 +71,6 @@ function appendToDocument(window, element) {
   window.document.documentElement.appendChild(element);
 }
 
-View.prototype.clearHints = function() {
-  this.container.innerHTML = "";
-  this.hideHints();
-};
-
-View.prototype.showHints = function() {
-  this.container.style.display = "block";
-};
-
-View.prototype.hideHints = function() {
-  this.container.style.display = "none";
-};
-
-View.prototype.generateHints = function(idGenerator) {
-  var nodes = getHintableNodes(this.window),
-      hints = {},
-      that = this,
-      fragment = window.document.createDocumentFragment();
-
-  utils.forEach(nodes, function(node) {
-    if (inViewPort(node)) {
-      var hintId = idGenerator(),
-          hint = new Hint(that.window, hintId, node);
-      fragment.appendChild(hint.hintNode);
-      hints[hintId] = hint;
-    }
-  });
-
-  this.container.appendChild(fragment);
-
-  return hints;
-};
-
 function getHintableNodes(window) {
   return window.document.querySelectorAll(hintableSelectors);
 }
@@ -68,11 +81,38 @@ function inViewPort(link) {
           cr.width > 0 && cr.height > 0);
 };
 
-function Hint(window, hintId, hintable) {
-  this.window = window;
-  this.hintId = hintId;
-  this.hintable = hintable;
-  this.hintNode = createHintNode(window, hintId, hintable);
+function Hint(window, clicker, hintId, hintable) {
+  var self = this;
+  self.hintId = hintId;
+  self.hintable = hintable;
+  self.hintNode = createHintNode(window, hintId, hintable);
+
+  self.hilight = function() {
+    self.hintNode.className += " " + hintHilightClass;
+  };
+
+  self.dehilight = function() {
+    var re = new RegExp("(\\s|^)" + hintHilightClass + "(\\s|$)");
+    self.hintNode.className = self.hintNode.className.replace(re, '');
+  };
+
+  self.activate = function(modifiers) {
+    if (self.shouldFocus()) {
+      self.hintable.focus();
+    } else {
+      click(modifiers);
+    }
+  };
+
+  self.shouldFocus = function() {
+    var el = self.hintable;
+    return ((el.tagName === 'INPUT' && hasInputType(el)) ||
+            el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+  };
+
+  function click(modifiers) {
+    clicker(self.hintable, modifiers);
+  }
 }
 
 function createHintNode(window, hintId, hintable) {
@@ -88,39 +128,8 @@ function createHintNode(window, hintId, hintable) {
   return span;
 }
 
-Hint.prototype.hilight = function() {
-  this.hintNode.className += " " + hintHilightClass;
-};
-
-Hint.prototype.dehilight = function() {
-  var re = new RegExp("(\\s|^)" + hintHilightClass + "(\\s|$)");
-  this.hintNode.className = this.hintNode.className.replace(re, '');
-};
-
-Hint.prototype.activate = function(modifiers) {
-  if (this.shouldFocus()) {
-    this.hintable.focus();
-  } else {
-    this.click(modifiers);
-  }
-};
-
-Hint.prototype.shouldFocus = function() {
-  var el = this.hintable;
-  return ((el.tagName === 'INPUT' && hasInputType(el)) ||
-          el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
-};
-
-Hint.prototype.click = function(mods) {
-  var ev = this.window.document.createEvent('MouseEvent');
-  ev.initMouseEvent('click', true, true, this.window, 0, 0, 0, 0, 0,
-                    mods.ctrlKey, mods.altKey, mods.shiftKey,
-                    mods.metaKey, 0, null);
-  this.hintable.dispatchEvent(ev);
-};
-
 function hasInputType(element) {
   return inputTypes.some(function(t) { return element.type === t; });
 }
 
-exports.View = View;
+module.exports = View;

@@ -1,111 +1,113 @@
-;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-function Controller(view, generatorFactory, options) {
-  this.view = view;
-  this.generatorFactory = generatorFactory;
-  this.options = options;
-  this.active = false;
-  this.input = "";
-  this.hints = {};
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+function createClicker(window) {
+  return function(element, mods) {
+    var ev = window.document.createEvent('MouseEvent');
+    ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
+                      mods.ctrlKey, mods.altKey, mods.shiftKey,
+                      mods.metaKey, 0, null);
+    element.dispatchEvent(ev);
+  };
 }
 
-Controller.prototype.escape = function(e) {
-  var that = this;
-  return this.whenActive(function() {
-    that.deactivate();
-  });
-};
-
-Controller.prototype.whenActive = function(f) {
-  if (this.active) {
-    f();
-    return true;
-  }
-  return false;
-};
-
-Controller.prototype.addCharacter = function(e) {
-  var that = this;
-  return this.whenActive(function() {
-    var c = String.fromCharCode(e.keyCode).toLowerCase();
-    if (that.options.hintCharacters.indexOf(c) >= 0) {
-      that.updateSelection(c);
-    }
-  });
-};
-
-Controller.prototype.updateSelection = function(s) {
-  this.withCurrentHint(function(h) { h.dehilight(); });
-  this.input += s;
-  this.withCurrentHint(function(h) { h.hilight(); });
-};
-
-Controller.prototype.withCurrentHint = function(f) {
-  var hint = this.currentHint();
-  if (hint) {
-    f(hint);
-  }
-};
-
-Controller.prototype.activateCurrentHint = function(e) {
-  var that = this;
-  return this.whenActive(function() {
-    that.withCurrentHint(function(h){
-      h.activate(e);
-      if (h.shouldFocus()) {
-        that.deactivate();
-      }
-    });
-    that.clearInput();
-  });
-};
-
-Controller.prototype.toggle = function(e) {
-  if (this.input.length > 0) {
-    this.clearInput();
-  } else if (this.active) {
-    this.deactivate();
-  } else {
-    this.activate();
-  }
-  return true;
-};
-
-Controller.prototype.activate = function() {
-  this.active = true;
-  this.newHints();
-  this.view.showHints();
-};
-
-Controller.prototype.newHints = function() {
-  this.hints = this.view.generateHints(this.generatorFactory());
-};
-
-Controller.prototype.deactivate = function() {
-  this.active = false;
-  this.clearInput();
-  this.view.clearHints();
-};
-
-Controller.prototype.clearInput = function() {
-  var hint = this.currentHint();
-  if (hint) {
-    hint.dehilight();
-  }
-  this.input = "";
-};
-
-Controller.prototype.currentHint = function() {
-  return this.hints[this.input.toLowerCase()];
-};
-
-function containsMods(e) {
-  return (e.ctrlKey || e.altKey || e.metaKey);
-}
-
-exports.Controller = Controller;
+module.exports = createClicker;
 
 },{}],2:[function(require,module,exports){
-var defaultOptions = {
+function Controller(view, hintGenerator, options) {
+  var self = this;
+  var active = false;
+  var input = "";
+  var hints = {};
+
+  self.escape = function(e) {
+    return whenActive(deactivate);
+  };
+
+  function whenActive(f) {
+    if (active) {
+      f();
+      return true;
+    }
+    return false;
+  }
+
+  self.addCharacter = function(e) {
+    return whenActive(function() {
+      var c = String.fromCharCode(e.keyCode).toLowerCase();
+      if (options.hintCharacters.indexOf(c) >= 0) {
+        updateSelection(c);
+      }
+    });
+  };
+
+  function updateSelection(s) {
+    withCurrentHint(function(h) { h.dehilight(); });
+    input += s;
+    withCurrentHint(function(h) { h.hilight(); });
+  }
+
+  function withCurrentHint(f) {
+    var hint = currentHint();
+    if (hint) {
+      f(hint);
+    }
+  }
+
+  self.activateCurrentHint = function(e) {
+    return whenActive(function() {
+      withCurrentHint(function(h){
+        h.activate(e);
+        if (h.shouldFocus()) {
+          deactivate();
+        }
+      });
+      clearInput();
+    });
+  };
+
+  self.toggle = function(e) {
+    if (input.length > 0) {
+      clearInput();
+    } else if (active) {
+      deactivate();
+    } else {
+      activate();
+    }
+    return true;
+  };
+
+  function activate() {
+    active = true;
+    newHints();
+    view.showHints();
+  }
+
+  function newHints() {
+    hints = view.generateHints(hintGenerator());
+  }
+
+  function deactivate() {
+    active = false;
+    clearInput();
+    view.clearHints();
+  }
+
+  function clearInput() {
+    var hint = currentHint();
+    if (hint) {
+      hint.dehilight();
+    }
+    input = "";
+  }
+
+  function currentHint() {
+    return hints[input.toLowerCase()];
+  }
+}
+
+module.exports = Controller;
+
+},{}],3:[function(require,module,exports){
+var defaults = {
   // What hint characters to use in order of appearance.
   hintCharacters: "fdjkghslrueicnxmowabzpt",
 
@@ -116,11 +118,12 @@ var defaultOptions = {
   activateKey: 77
 };
 
-exports.defaultOptions = defaultOptions;
+module.exports = defaults;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 function hintIdGenerator(hintCharacters) {
   var counter = 0, len = hintCharacters.length;
+
   return function() {
     var num = counter, iter = 0, text = '', n;
     while (num >= 0) {
@@ -137,21 +140,27 @@ function hintIdGenerator(hintCharacters) {
   };
 }
 
-exports.hintIdGenerator = hintIdGenerator;
+module.exports = hintIdGenerator;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var possibleModifiers = ["ctrl", "alt", "meta", "shift"];
 
 function KeyMapper(window) {
-  this.window = window;
-}
+  var self = this;
 
-KeyMapper.prototype.addHandler = function(keyCode, modifiers, handler) {
-  var modifierMap = createModifierMap(modifiers);
-  addKeyDownHandler(window, handler, function(e) {
-    return e.keyCode === keyCode && modifiersMatch(modifierMap, e);
-  });
-};
+  self.addHandler = function(keyCode, modifiers, handler) {
+    var modifierMap = createModifierMap(modifiers);
+    addKeyDownHandler(window, handler, function(e) {
+      return e.keyCode === keyCode && modifiersMatch(modifierMap, e);
+    });
+  };
+
+  self.addDefaultNonModifierHandler = function(handler) {
+    addKeyDownHandler(window, handler, function(e) {
+      return noModifiers(e);
+    });
+  };
+}
 
 function createModifierMap(modifiers) {
   function addModifier(o, mod) {
@@ -183,44 +192,15 @@ function addKeyDownHandler(window, handler, predicate) {
   window.document.addEventListener('keydown', h, true);
 }
 
-KeyMapper.prototype.addDefaultNonModifierHandler = function(handler) {
-  addKeyDownHandler(window, handler, function(e) {
-    return noModifiers(e);
-  });
-};
-
 function noModifiers(e) {
   return !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey;
 }
 
-exports.KeyMapper = KeyMapper;
+module.exports = KeyMapper;
 
-},{}],5:[function(require,module,exports){
-(function(chrome, window) {
-  var Controller = require("./controller").Controller,
-      View = require("./view").View,
-      idGeneratorFactory = require("./hintidgen").hintIdGenerator,
-      optionParser = require("./optionparser").optionParser,
-      KeyMapper = require("./keymapper").KeyMapper;
-
-  chrome.extension.sendRequest({method: "getOptions"}, function(response) {
-    var options = optionParser(response),
-        keyMapper = new KeyMapper(window),
-        view = new View(window),
-        generator = idGeneratorFactory.bind(null, options.hintCharacters),
-        controller = new Controller(view, generator, options);
-
-    keyMapper.addHandler(options.activateKey, [options.activateModifier],
-                         controller.toggle.bind(controller));
-    keyMapper.addHandler(27, null, controller.escape.bind(controller));
-    keyMapper.addHandler(13, null, controller.activateCurrentHint.bind(controller));
-    keyMapper.addDefaultNonModifierHandler(controller.addCharacter.bind(controller));
-  });
-}).call(null, chrome, window);
-
-},{"./controller":1,"./hintidgen":3,"./keymapper":4,"./optionparser":6,"./view":8}],6:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var utils = require("./utils"),
-    defaults = require("./defaults").defaultOptions;
+    defaults = require("./defaults");
 
 function optionParser(raw) {
   return {
@@ -251,9 +231,9 @@ function getHintCharacters(raw) {
     : null;
 }
 
-exports.optionParser = optionParser;
+module.exports = optionParser;
 
-},{"./defaults":2,"./utils":7}],7:[function(require,module,exports){
+},{"./defaults":3,"./utils":7}],7:[function(require,module,exports){
 function forEach(coll, f) {
   for (var i = 0; i < coll.length; i++) {
     f(coll[i], i);
@@ -276,19 +256,65 @@ exports.uniqueCharacters = uniqueCharacters;
 
 },{}],8:[function(require,module,exports){
 var utils = require('./utils');
+var createClicker = require('./clicker');
 
-var hintableSelectors = 'a, input:not([type=hidden]), textarea, select, ' +
-      'button, [onclick], [onmousedown]',
-    inputTypes = ['text', 'password', 'search', 'tel', 'url', 'email',
-                  'number', 'datetime', 'datetime-local'],
-    containerId = "yahe-hint-container",
-    hintClass = "yahe-hint-node",
-    hintHilightClass = "yahe-hint-hilight";
+var hintableSelectorsArr = [
+  'a',
+  'input:not([type=hidden])',
+  'textarea',
+  'select',
+  'button',
+  '[onclick]',
+  '[onmousedown]'
+]
+
+var inputTypes = [
+  'text', 'password', 'search', 'tel', 'url', 'email',
+  'number', 'datetime', 'datetime-local'
+];
+
+var hintableSelectors = hintableSelectorsArr.join(', ');
+var containerId = "yahe-hint-container";
+var hintClass = "yahe-hint-node";
+var hintHilightClass = "yahe-hint-hilight";
 
 function View(window) {
-  this.window = window;
-  this.container = createHintsContainer(window);
-  appendToDocument(window, this.container);
+  var self = this;
+  var clicker = createClicker(window);
+  var container = createHintsContainer(window);
+  appendToDocument(window, container);
+
+  self.clearHints = function() {
+    container.innerHTML = "";
+    self.hideHints();
+  };
+
+  self.showHints = function() {
+    container.style.display = "block";
+  };
+
+  self.hideHints = function() {
+    container.style.display = "none";
+  };
+
+  self.generateHints = function(idGenerator) {
+    var nodes = getHintableNodes(window),
+        hints = {},
+        fragment = window.document.createDocumentFragment();
+
+    utils.forEach(nodes, function(node) {
+      if (inViewPort(node)) {
+        var hintId = idGenerator(),
+            hint = new Hint(window, clicker, hintId, node);
+        fragment.appendChild(hint.hintNode);
+        hints[hintId] = hint;
+      }
+    });
+
+    container.appendChild(fragment);
+
+    return hints;
+  };
 }
 
 function createHintsContainer(window) {
@@ -302,39 +328,6 @@ function appendToDocument(window, element) {
   window.document.documentElement.appendChild(element);
 }
 
-View.prototype.clearHints = function() {
-  this.container.innerHTML = "";
-  this.hideHints();
-};
-
-View.prototype.showHints = function() {
-  this.container.style.display = "block";
-};
-
-View.prototype.hideHints = function() {
-  this.container.style.display = "none";
-};
-
-View.prototype.generateHints = function(idGenerator) {
-  var nodes = getHintableNodes(this.window),
-      hints = {},
-      that = this,
-      fragment = window.document.createDocumentFragment();
-
-  utils.forEach(nodes, function(node) {
-    if (inViewPort(node)) {
-      var hintId = idGenerator(),
-          hint = new Hint(that.window, hintId, node);
-      fragment.appendChild(hint.hintNode);
-      hints[hintId] = hint;
-    }
-  });
-
-  this.container.appendChild(fragment);
-
-  return hints;
-};
-
 function getHintableNodes(window) {
   return window.document.querySelectorAll(hintableSelectors);
 }
@@ -345,11 +338,38 @@ function inViewPort(link) {
           cr.width > 0 && cr.height > 0);
 };
 
-function Hint(window, hintId, hintable) {
-  this.window = window;
-  this.hintId = hintId;
-  this.hintable = hintable;
-  this.hintNode = createHintNode(window, hintId, hintable);
+function Hint(window, clicker, hintId, hintable) {
+  var self = this;
+  self.hintId = hintId;
+  self.hintable = hintable;
+  self.hintNode = createHintNode(window, hintId, hintable);
+
+  self.hilight = function() {
+    self.hintNode.className += " " + hintHilightClass;
+  };
+
+  self.dehilight = function() {
+    var re = new RegExp("(\\s|^)" + hintHilightClass + "(\\s|$)");
+    self.hintNode.className = self.hintNode.className.replace(re, '');
+  };
+
+  self.activate = function(modifiers) {
+    if (self.shouldFocus()) {
+      self.hintable.focus();
+    } else {
+      click(modifiers);
+    }
+  };
+
+  self.shouldFocus = function() {
+    var el = self.hintable;
+    return ((el.tagName === 'INPUT' && hasInputType(el)) ||
+            el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+  };
+
+  function click(modifiers) {
+    clicker(self.hintable, modifiers);
+  }
 }
 
 function createHintNode(window, hintId, hintable) {
@@ -365,42 +385,33 @@ function createHintNode(window, hintId, hintable) {
   return span;
 }
 
-Hint.prototype.hilight = function() {
-  this.hintNode.className += " " + hintHilightClass;
-};
-
-Hint.prototype.dehilight = function() {
-  var re = new RegExp("(\\s|^)" + hintHilightClass + "(\\s|$)");
-  this.hintNode.className = this.hintNode.className.replace(re, '');
-};
-
-Hint.prototype.activate = function(modifiers) {
-  if (this.shouldFocus()) {
-    this.hintable.focus();
-  } else {
-    this.click(modifiers);
-  }
-};
-
-Hint.prototype.shouldFocus = function() {
-  var el = this.hintable;
-  return ((el.tagName === 'INPUT' && hasInputType(el)) ||
-          el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
-};
-
-Hint.prototype.click = function(mods) {
-  var ev = this.window.document.createEvent('MouseEvent');
-  ev.initMouseEvent('click', true, true, this.window, 0, 0, 0, 0, 0,
-                    mods.ctrlKey, mods.altKey, mods.shiftKey,
-                    mods.metaKey, 0, null);
-  this.hintable.dispatchEvent(ev);
-};
-
 function hasInputType(element) {
   return inputTypes.some(function(t) { return element.type === t; });
 }
 
-exports.View = View;
+module.exports = View;
 
-},{"./utils":7}]},{},[5])
-;
+},{"./clicker":1,"./utils":7}],9:[function(require,module,exports){
+(function(chrome, window) {
+  var Controller = require("./controller"),
+      View = require("./view"),
+      idGenerator = require("./hintidgen"),
+      optionParser = require("./optionparser"),
+      KeyMapper = require("./keymapper");
+
+  chrome.extension.sendRequest({method: "getOptions"}, function(response) {
+    var options = optionParser(response),
+        keyMapper = new KeyMapper(window),
+        view = new View(window),
+        generator = idGenerator.bind(null, options.hintCharacters),
+        controller = new Controller(view, generator, options);
+
+    keyMapper.addHandler(options.activateKey, [options.activateModifier],
+                         controller.toggle.bind(controller));
+    keyMapper.addHandler(27, null, controller.escape.bind(controller));
+    keyMapper.addHandler(13, null, controller.activateCurrentHint.bind(controller));
+    keyMapper.addDefaultNonModifierHandler(controller.addCharacter.bind(controller));
+  });
+}).call(null, chrome, window);
+
+},{"./controller":2,"./hintidgen":4,"./keymapper":5,"./optionparser":6,"./view":8}]},{},[9]);

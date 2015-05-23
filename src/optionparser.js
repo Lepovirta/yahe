@@ -1,5 +1,5 @@
 var utils = require("./utils"),
-    defaults = require("./defaults").defaultOptions;
+    defaults = require("./defaults");
 
 function optionParser(raw) {
   return {
@@ -30,4 +30,4 @@ function getHintCharacters(raw) {
     : null;
 }
 
-exports.optionParser = optionParser;
+module.exports = optionParser;
