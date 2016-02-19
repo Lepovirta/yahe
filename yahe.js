@@ -56,7 +56,7 @@ function Controller(view, hintGenerator, options) {
     return whenActive(function() {
       withCurrentHint(function(h){
         h.activate(e);
-        if (h.shouldFocus()) {
+        if (h.shouldFocus() || options.deactivateAfterHit) {
           deactivate();
         }
       });
@@ -115,7 +115,12 @@ var defaults = {
   activateModifier: "ctrl",
 
   // Activation key code
-  activateKey: 77
+  activateKey: 77,
+
+  // Whether the hints should always be hidden after hint activation
+  // (by default, they are only hidden after hitting something
+  // that should be focused rather than followed, i.e. a form input).
+  deactivateAfterHit: false
 };
 
 module.exports = defaults;
@@ -199,6 +204,29 @@ function noModifiers(e) {
 module.exports = KeyMapper;
 
 },{}],6:[function(require,module,exports){
+(function(chrome, window) {
+  var Controller = require("./controller"),
+      View = require("./view"),
+      idGenerator = require("./hintidgen"),
+      optionParser = require("./optionparser"),
+      KeyMapper = require("./keymapper");
+
+  chrome.storage.local.get(null, function(response) {
+    var options = optionParser(response),
+        keyMapper = new KeyMapper(window),
+        view = new View(window),
+        generator = idGenerator.bind(null, options.hintCharacters),
+        controller = new Controller(view, generator, options);
+
+    keyMapper.addHandler(options.activateKey, [options.activateModifier],
+                         controller.toggle.bind(controller));
+    keyMapper.addHandler(27, null, controller.escape.bind(controller));
+    keyMapper.addHandler(13, null, controller.activateCurrentHint.bind(controller));
+    keyMapper.addDefaultNonModifierHandler(controller.addCharacter.bind(controller));
+  });
+}).call(null, chrome, window);
+
+},{"./controller":2,"./hintidgen":4,"./keymapper":5,"./optionparser":7,"./view":9}],7:[function(require,module,exports){
 var utils = require("./utils"),
     defaults = require("./defaults");
 
@@ -207,7 +235,9 @@ function optionParser(raw) {
   return {
     activateKey: getActivateKey(raw_) || defaults.activateKey,
     activateModifier: getActivateModifier(raw_) || defaults.activateModifier,
-    hintCharacters: getHintCharacters(raw_) || defaults.hintCharacters
+    hintCharacters: getHintCharacters(raw_) || defaults.hintCharacters,
+    deactivateAfterHit: (typeof raw_.deactivateAfterHit === "boolean") ?
+        raw_.deactivateAfterHit : defaults.deactivateAfterHit
   };
 }
 
@@ -233,7 +263,7 @@ function getHintCharacters(raw) {
 
 module.exports = optionParser;
 
-},{"./defaults":3,"./utils":7}],7:[function(require,module,exports){
+},{"./defaults":3,"./utils":8}],8:[function(require,module,exports){
 function forEach(coll, f) {
   for (var i = 0; i < coll.length; i++) {
     f(coll[i], i);
@@ -254,7 +284,7 @@ function uniqueCharacters(s) {
 exports.forEach = forEach;
 exports.uniqueCharacters = uniqueCharacters;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var utils = require('./utils');
 var createClicker = require('./clicker');
 
@@ -391,27 +421,4 @@ function hasInputType(element) {
 
 module.exports = View;
 
-},{"./clicker":1,"./utils":7}],9:[function(require,module,exports){
-(function(chrome, window) {
-  var Controller = require("./controller"),
-      View = require("./view"),
-      idGenerator = require("./hintidgen"),
-      optionParser = require("./optionparser"),
-      KeyMapper = require("./keymapper");
-
-  chrome.storage.local.get(null, function(response) {
-    var options = optionParser(response),
-        keyMapper = new KeyMapper(window),
-        view = new View(window),
-        generator = idGenerator.bind(null, options.hintCharacters),
-        controller = new Controller(view, generator, options);
-
-    keyMapper.addHandler(options.activateKey, [options.activateModifier],
-                         controller.toggle.bind(controller));
-    keyMapper.addHandler(27, null, controller.escape.bind(controller));
-    keyMapper.addHandler(13, null, controller.activateCurrentHint.bind(controller));
-    keyMapper.addDefaultNonModifierHandler(controller.addCharacter.bind(controller));
-  });
-}).call(null, chrome, window);
-
-},{"./controller":2,"./hintidgen":4,"./keymapper":5,"./optionparser":6,"./view":8}]},{},[9]);
+},{"./clicker":1,"./utils":8}]},{},[6]);

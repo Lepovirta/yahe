@@ -12,6 +12,9 @@
       li {
         margin: 0;
       }
+      fieldset {
+        margin-bottom: 1em;
+      }
     </style>
   </head>
   <body>
@@ -48,6 +51,26 @@
           <label for="mod_meta">
             <input type="radio" value="meta" name="mod" id="mod_meta" />
             Meta / Command
+          </label>
+        </li>
+      </ul>
+    </fieldset>
+
+    <fieldset>
+      <legend>After I hit a hint...</legend>
+      <ul>
+        <li>
+          <label for="deactivate_normal">
+            <input type="radio" value="normal" name="deactivate"
+              checked="true" id="deactivate_normal" />
+            keep the hints on screen so I can hit another one
+          </label>
+        </li>
+        <li>
+          <label for="deactivate_always">
+            <input type="radio" value="always" name="deactivate"
+              id="deactivate_always" />
+            hide the hints
           </label>
         </li>
       </ul>

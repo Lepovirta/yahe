@@ -1,7 +1,8 @@
 var defaults = {
   activateModifier: 'ctrl',
   hintCharacters: 'fdjkghslrueicnxmowabzpt',
-  activateKey: 'm'
+  activateKey: 'm',
+  deactivateAfterHit: false
 };
 
 function getElements() {
@@ -12,6 +13,10 @@ function getElements() {
       ctrl: document.getElementById('mod_ctrl'),
       alt: document.getElementById('mod_alt'),
       meta: document.getElementById('mod_meta')
+    },
+    deactivate: {
+      normal: document.getElementById('deactivate_normal'),
+      always: document.getElementById('deactivate_always')
     }
   };
 }
@@ -28,7 +33,8 @@ function saveOptions() {
   var options = {
     hintCharacters: elements.hintCharacters.value || defaults.hintCharacters,
     activateKey: elements.activateKey.value || defaults.activateKey,
-    activateModifier: selectedModifier(elements.modifiers)
+    activateModifier: selectedModifier(elements.modifiers),
+    deactivateAfterHit: elements.deactivate.always.checked
   };
   chrome.storage.local.set(options, function() {
     showStatus('Options saved');
@@ -44,6 +50,8 @@ function restoreOptions() {
     elements.modifiers.ctrl.checked = mod === 'ctrl';
     elements.modifiers.alt.checked = mod === 'alt';
     elements.modifiers.meta.checked = mod === 'meta';
+    elements.deactivate.normal.checked = !options.deactivateAfterHit;
+    elements.deactivate.always.checked = options.deactivateAfterHit;
   });
 }
 

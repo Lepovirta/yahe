@@ -6,7 +6,9 @@ function optionParser(raw) {
   return {
     activateKey: getActivateKey(raw_) || defaults.activateKey,
     activateModifier: getActivateModifier(raw_) || defaults.activateModifier,
-    hintCharacters: getHintCharacters(raw_) || defaults.hintCharacters
+    hintCharacters: getHintCharacters(raw_) || defaults.hintCharacters,
+    deactivateAfterHit: (typeof raw_.deactivateAfterHit === "boolean") ?
+        raw_.deactivateAfterHit : defaults.deactivateAfterHit
   };
 }
 
