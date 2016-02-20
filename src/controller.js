@@ -42,7 +42,7 @@ function Controller(view, hintGenerator, options) {
     return whenActive(function() {
       withCurrentHint(function(h){
         h.activate(e);
-        if (h.shouldFocus()) {
+        if (h.shouldFocus() || options.deactivateAfterHit) {
           deactivate();
         }
       });
