@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name          YAHE
-// @namespace     https://github.com/jkpl/yahe
+// @namespace     https://github.com/Lepovirta/yahe
 // @description   Yet Another Hints Extension
+// @icon          https://raw.githubusercontent.com/Lepovirta/yahe/master/icon48.png
 // @grant         GM_addStyle
 // @grant         GM_openInTab
 // ==/UserScript==
