@@ -1,8 +1,7 @@
 # Yet Another Hints Extension
 
-I wasn't fully satisfied with the hit-a-hint extensions available for Chrome in
-the Chrome web store, so I made my own. These are the existing extensions that
-worked as inspiration for this one:
+I wasn't fully satisfied with the hit-a-hint extensions available for Chrome and Firefox, so I made my own.
+These are the existing extensions that worked as inspiration for this one:
 
 * [Hints script in DWB][hhdwb]
 * [Hit-a-Hint for Opera][hhopera] (hint code generation)
@@ -22,18 +21,27 @@ You can deactivate the hints by pressing the escape key. Pressing the hint key
 after typing some characters clears the typing buffer, and pressing it again
 deactivates the hints.
 
-You can customize the hint key and hint characters in the extension's options
-page.
+In Chrome, you can customize the hint key and hint characters in the extension's options page.
 
 ## Installation
+
+### Chrome
+
+Install from [Chrome Web Store][cws].
+
+### Firefox
+
+1. Install [Greasemonkey][] addon for Firefox.
+2. Open [yahe.user.js][yahejs] in Firefox, and click install.
+
+### Chrome
 
 There are two ways to install this extension: from this extension's
 [Chrome Web Store][cws] page or from repository sources.
 
-### Installing from repository sources
+### Installing for Chrome from repository sources
 
-1. Clone YAHE repository: `git clone git://github.com/jkpl/yahe.git` or
-   `git clone git@bitbucket.org:jkpl/yahe.git`
+1. Clone YAHE Git repository: `git clone git://github.com/jkpl/yahe.git`
 2. Fire up you Chrome/Chromium browser, and go to the extensions section of the
    settings page.
 3. Enable the developer mode by checking the developer mode checkbox.
@@ -53,13 +61,16 @@ tools:
 * [NPM][] (usually ships with Node.JS)
 * [Browserify][] with NPM
 
-All the code for YAHE is located in the `src/` directory, and `yahe.js` is just
-the build output. If you have Browserify installed, you can execute `build.sh`
+All the code for YAHE is located in the `src/` directory, and `yahe.js` and `yahe.user.js` are just the build outputs.
+If you have Browserify installed, you can execute `build.sh`
 file using a Bourne shell (`sh`) compatible shell to build the final script.
 
 The entry point for YAHE is in the `main.js` file, which does all the
 initialization. It imports most of the code from other source files, and it's a
 good place to start reading the code.
+
+If you want to change the settings for the script, change the values in
+`defaults.js` source file. Remember to rebuild the final script.
 
 ## License
 
@@ -92,6 +103,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [hhdwb]: https://bitbucket.org/portix/dwb/src/0583e44d0164/scripts/hints.js
 [kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
+[greasemonkey]: https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
+[yahejs]: https://github.com/jkpl/yahe/raw/master/yahe.user.js
 [nodejs]: http://nodejs.org/
 [npm]: https://npmjs.org/
 [browserify]: http://browserify.org/

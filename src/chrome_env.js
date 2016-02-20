@@ -8,4 +8,4 @@ function createClicker(window) {
   };
 }
 
-module.exports = createClicker;
+exports.createClicker = createClicker;

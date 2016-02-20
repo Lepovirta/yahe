@@ -1,3 +1,11 @@
+// ==UserScript==
+// @name          YAHE
+// @namespace     https://github.com/jkpl/yahe
+// @description   Yet Another Hints Extension
+// @grant         GM_addStyle
+// @grant         GM_openInTab
+// ==/UserScript==
+GM_addStyle(".yahe-hint-node {  font-family: sans-serif;  position: absolute;  color: black;  background-color: #fe5;  border: 1px solid #ea1;  padding: 2px;  margin: 0;  z-index: 2147483647;  text-transform: uppercase;  font-weight: bold;  font-size: 12px;  line-height: 12px;}.yahe-hint-hilight {  background-color: #333;  color: #fe5;}");
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var Controller = require("./controller"),
     View = require("./view"),
@@ -23,32 +31,7 @@ module.exports = function(window, options, env) {
   window.addEventListener('beforeunload', deactivate, true);
 }
 
-},{"./controller":4,"./hintidgen":6,"./keymapper":7,"./view":10}],2:[function(require,module,exports){
-function createClicker(window) {
-  return function(element, mods) {
-    var ev = window.document.createEvent('MouseEvent');
-    ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
-                      mods.ctrlKey, mods.altKey, mods.shiftKey,
-                      mods.metaKey, 0, null);
-    element.dispatchEvent(ev);
-  };
-}
-
-exports.createClicker = createClicker;
-
-},{}],3:[function(require,module,exports){
-(function(chrome, window) {
-  var optionParser = require("./optionparser"),
-      env = require('./chrome_env'),
-      boot = require('./boot');
-
-  chrome.storage.local.get(null, function(response) {
-    var options = optionParser(response);
-    boot(window, options, env);
-  });
-}).call(null, chrome, window);
-
-},{"./boot":1,"./chrome_env":2,"./optionparser":8}],4:[function(require,module,exports){
+},{"./controller":2,"./hintidgen":6,"./keymapper":7,"./view":9}],2:[function(require,module,exports){
 function Controller(view, hintGenerator, options) {
   var self = this;
   var active = false;
@@ -143,7 +126,7 @@ function Controller(view, hintGenerator, options) {
 
 module.exports = Controller;
 
-},{}],5:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var defaults = {
   // What hint characters to use in order of appearance.
   hintCharacters: "fdjkghslrueicnxmowabzpt",
@@ -162,7 +145,70 @@ var defaults = {
 
 module.exports = defaults;
 
-},{}],6:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+if (!String.prototype.endsWith) {
+  String.prototype.endsWith = function(searchString, position) {
+      var subjectString = this.toString();
+      if (position === undefined || position > subjectString.length) {
+          position = subjectString.length;
+      }
+      position -= searchString.length;
+      var lastIndex = subjectString.indexOf(searchString, position);
+      return lastIndex !== -1 && lastIndex === position;
+  };
+}
+
+function createClicker(window) {
+  function openUrlNewTab(link) {
+    GM_openInTab(link);
+  }
+
+  function simulateClick(target, mods) {
+    var ev = window.document.createEvent('MouseEvent');
+    ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
+                      mods.ctrlKey, mods.altKey, mods.shiftKey,
+                      mods.metaKey, 0, null);
+    target.dispatchEvent(ev);
+  }
+
+  return function(target, mods) {
+    var url = getUrl(target);
+    if (isUrl(url) && isOpenNewTabClick(window, mods)) {
+      openUrlNewTab(target.href);
+    } else {
+      simulateClick(target, mods);
+    }
+  };
+}
+
+function getUrl(target) {
+  return target.href;
+}
+
+function isUrl(url) {
+  return typeof url === "string"
+    && url !== ""
+    && !url.endsWith("/#");
+}
+
+function isOpenNewTabClick(window, mods) {
+  return isMac(window) && mods.metaKey || mods.ctrlKey;
+}
+
+function isMac(window) {
+  return window.navigator.appVersion.indexOf("Mac") !== -1;
+}
+
+exports.createClicker = createClicker;
+
+},{}],5:[function(require,module,exports){
+var options = require('./defaults'),
+    env = require('./gm_env'),
+    boot = require('./boot');
+
+boot(window, options, env);
+
+},{"./boot":1,"./defaults":3,"./gm_env":4}],6:[function(require,module,exports){
 function hintIdGenerator(hintCharacters) {
   var counter = 0, len = hintCharacters.length;
 
@@ -241,43 +287,6 @@ function noModifiers(e) {
 module.exports = KeyMapper;
 
 },{}],8:[function(require,module,exports){
-var utils = require("./utils"),
-    defaults = require("./defaults");
-
-function optionParser(raw) {
-  var raw_ = raw || {};
-  return {
-    activateKey: getActivateKey(raw_) || defaults.activateKey,
-    activateModifier: getActivateModifier(raw_) || defaults.activateModifier,
-    hintCharacters: getHintCharacters(raw_) || defaults.hintCharacters,
-    deactivateAfterHit: (typeof raw_.deactivateAfterHit === "boolean") ?
-        raw_.deactivateAfterHit : defaults.deactivateAfterHit
-  };
-}
-
-function getActivateKey(raw) {
-  var key = raw.activateKey;
-  return typeof key === "string"
-    ? key.toUpperCase().charCodeAt(0)
-    : null;
-}
-
-function getActivateModifier(raw) {
-  var mod = raw.activateModifier;
-  var isValidMod = (mod === 'alt' || mod === 'meta' || mod === 'ctrl');
-  return isValidMod ? mod : null;
-}
-
-function getHintCharacters(raw) {
-  var hintChars = raw.hintCharacters;
-  return typeof hintChars === "string"
-    ? utils.uniqueCharacters(hintChars.toLowerCase())
-    : null;
-}
-
-module.exports = optionParser;
-
-},{"./defaults":5,"./utils":9}],9:[function(require,module,exports){
 function forEach(coll, f) {
   for (var i = 0; i < coll.length; i++) {
     f(coll[i], i);
@@ -298,7 +307,7 @@ function uniqueCharacters(s) {
 exports.forEach = forEach;
 exports.uniqueCharacters = uniqueCharacters;
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var utils = require('./utils');
 
 var hintableSelectorsArr = [
@@ -434,4 +443,4 @@ function hasInputType(element) {
 
 module.exports = View;
 
-},{"./utils":9}]},{},[3]);
+},{"./utils":8}]},{},[5]);

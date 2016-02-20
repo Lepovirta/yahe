@@ -5,7 +5,7 @@ function Controller(view, hintGenerator, options) {
   var hints = {};
 
   self.escape = function(e) {
-    return whenActive(deactivate);
+    return whenActive(self.deactivate);
   };
 
   function whenActive(f) {
@@ -43,7 +43,7 @@ function Controller(view, hintGenerator, options) {
       withCurrentHint(function(h){
         h.activate(e);
         if (h.shouldFocus() || options.deactivateAfterHit) {
-          deactivate();
+          self.deactivate();
         }
       });
       clearInput();
@@ -54,7 +54,7 @@ function Controller(view, hintGenerator, options) {
     if (input.length > 0) {
       clearInput();
     } else if (active) {
-      deactivate();
+      self.deactivate();
     } else {
       activate();
     }
@@ -71,11 +71,11 @@ function Controller(view, hintGenerator, options) {
     hints = view.generateHints(hintGenerator());
   }
 
-  function deactivate() {
+  self.deactivate = function() {
     active = false;
     clearInput();
     view.clearHints();
-  }
+  };
 
   function clearInput() {
     var hint = currentHint();

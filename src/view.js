@@ -1,5 +1,4 @@
 var utils = require('./utils');
-var createClicker = require('./clicker');
 
 var hintableSelectorsArr = [
   'a',
@@ -21,9 +20,9 @@ var containerId = "yahe-hint-container";
 var hintClass = "yahe-hint-node";
 var hintHilightClass = "yahe-hint-hilight";
 
-function View(window) {
+function View(window, env) {
   var self = this;
-  var clicker = createClicker(window);
+  var clicker = env.createClicker(window);
   var container = createHintsContainer(window);
   appendToDocument(window, container);
 
@@ -121,7 +120,7 @@ function createHintNode(window, hintId, hintable) {
       span_top = window.pageYOffset + (cr.top > 0 ? cr.top : 0),
       span_left = window.pageXOffset + (cr.left > 0 ? cr.left : 0) - span.offsetWidth;
 
-  span.innerText = hintId;
+  span.textContent = hintId;
   span.className = hintClass;
   span.style.top = span_top + "px";
   span.style.left = span_left + "px";
