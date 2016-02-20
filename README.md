@@ -41,7 +41,7 @@ There are two ways to install this extension: from this extension's
 
 ### Installing for Chrome from repository sources
 
-1. Clone YAHE Git repository: `git clone git://github.com/jkpl/yahe.git`
+1. Clone YAHE Git repository: `git clone git://github.com/Lepovirta/yahe.git`
 2. Fire up you Chrome/Chromium browser, and go to the extensions section of the
    settings page.
 3. Enable the developer mode by checking the developer mode checkbox.
@@ -104,7 +104,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
 [greasemonkey]: https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
-[yahejs]: https://github.com/jkpl/yahe/raw/master/yahe.user.js
+[yahejs]: https://github.com/Lepovirta/yahe/raw/master/yahe.user.js
 [nodejs]: http://nodejs.org/
 [npm]: https://npmjs.org/
 [browserify]: http://browserify.org/
