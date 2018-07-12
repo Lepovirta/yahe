@@ -22,6 +22,7 @@
   ],
   "content_scripts": [
     {
+      "match_about_blank": true,
       "matches": [
         "http://*/*",
         "https://*/*",
@@ -31,7 +32,7 @@
       "css": [ "yahe.css" ],
       "js": [ "yahe.js" ],
       "run_at": "document_end",
-      "all_frames": false
+      "all_frames": true
     }
   ]
 }
