@@ -1,0 +1,34 @@
+{
+  "name": "YAHE",
+  "version": "1.2.1",
+  "description": "Yet Another Hints Extension",
+  "scripts": {
+    "build": "gulp build",
+    "pkg": "gulp pkg",
+    "clean": "gulp clean",
+    "lint": "eslint *.js src/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lepovirta/yahe.git"
+  },
+  "author": "Jaakko Pallari",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/Lepovirta/yahe/issues"
+  },
+  "homepage": "https://github.com/Lepovirta/yahe",
+  "devDependencies": {
+    "del": "^3.0.0",
+    "eslint": "^5.5.0",
+    "eslint-config-google": "^0.10.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^4.0.0",
+    "gulp": "^3.9.1",
+    "gulp-cli": "^2.0.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-zip": "^4.2.0",
+    "rollup": "^0.65.0"
+  }
+}

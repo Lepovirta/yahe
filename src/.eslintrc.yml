@@ -1,0 +1,11 @@
+env:
+  browser: true
+  es6: true
+parserOptions:
+  sourceType: module
+  ecmaVersion: 2016
+extends:
+  - eslint:recommended
+  - google
+rules:
+  require-jsdoc: "off"
