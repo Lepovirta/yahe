@@ -1,21 +1,4 @@
-var possibleModifiers = ["ctrl", "alt", "meta", "shift"];
-
-function KeyMapper(window) {
-  var self = this;
-
-  self.addHandler = function(keyCode, modifiers, handler) {
-    var modifierMap = createModifierMap(modifiers);
-    addKeyDownHandler(window, handler, function(e) {
-      return e.keyCode === keyCode && modifiersMatch(modifierMap, e);
-    });
-  };
-
-  self.addDefaultNonModifierHandler = function(handler) {
-    addKeyDownHandler(window, handler, function(e) {
-      return noModifiers(e);
-    });
-  };
-}
+const availableModifiers = ['ctrl', 'alt', 'meta', 'shift'];
 
 function createModifierMap(modifiers) {
   function addModifier(o, mod) {
@@ -23,32 +6,47 @@ function createModifierMap(modifiers) {
     return o;
   }
   return modifiers === null
-    ? null
-    : modifiers.reduce(addModifier, {});
+  ? null
+  : modifiers.reduce(addModifier, {});
 }
+
 
 function modifiersMatch(modifierMap, e) {
   function modMatch(modifier) {
-    var expected = modifierMap[modifier] || false;
-    var actual = e[modifier + "Key"] || false;
+    let expected = modifierMap[modifier] || false;
+    let actual = e[`${modifier}Key`] || false;
     return expected === actual;
   }
 
-  return modifierMap === null || possibleModifiers.every(modMatch);
+  return modifierMap === null || availableModifiers.every(modMatch);
 }
 
-function addKeyDownHandler(window, handler, predicate) {
-  var h = function(e) {
-    if (predicate(e) && handler(e)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-  window.document.addEventListener('keydown', h, true);
+function noModifiers({shiftKey, ctrlKey, metaKey, altKey}) {
+  return !shiftKey && !ctrlKey && !metaKey && !altKey;
 }
 
-function noModifiers(e) {
-  return !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey;
-}
+export default class KeyMapper {
+  constructor({document}) {
+    this.document = document;
+  }
 
-module.exports = KeyMapper;
+  _addKeyDownHandler(handler, predicate) {
+    let h = (e) => {
+      if (predicate(e) && handler(e)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    this.document.addEventListener('keydown', h, true);
+  }
+
+  addHandler(keyCode, modifiers, handler) {
+    let modifierMap = createModifierMap(modifiers);
+    let p = (e) => e.keyCode === keyCode && modifiersMatch(modifierMap, e);
+    this._addKeyDownHandler(handler, p);
+  }
+
+  addDefaultNonModifierHandler(handler) {
+    this._addKeyDownHandler(handler, noModifiers);
+  }
+}
