@@ -1,6 +1,7 @@
 const gulp = require('gulp');
 const concat = require('gulp-concat');
 const zip = require('gulp-zip');
+const eslint = require('gulp-eslint');
 const del = require('del');
 const rollup = require('rollup');
 const fs = require('fs');
@@ -126,8 +127,20 @@ gulp.task('chrome:pkg', ['chrome'], () =>
 );
 
 gulp.task('gm', ['gm:js']);
+
 gulp.task('build', ['chrome', 'gm']);
+
 gulp.task('pkg', ['chrome:pkg']);
+
+gulp.task('lint', () => {
+  return gulp.src(['src/*.js', 'gulpfile.js'])
+      .pipe(eslint())
+      .pipe(eslint.format())
+      .pipe(eslint.failAfterError());
+});
+
+gulp.task('test', ['lint']);
+
 gulp.task('clean', () =>
   del([
     'dist/**/*',
