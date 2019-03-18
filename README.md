@@ -1,4 +1,4 @@
-# Yet Another Hints Extension (YAHE)
+# ![YAHE logo](images/icons/icon32.png) Yet Another Hints Extension (YAHE)
 
 I wasn't fully satisfied with the hit-a-hint extensions available for Chrome and Firefox, so I made my own.
 These are the existing extensions that worked as inspiration for this one:
