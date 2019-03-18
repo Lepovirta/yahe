@@ -4,12 +4,12 @@ YAHE: Yet Another Hints Extension
 
 // Default options used in YAHE.
 // GREASEMONKEY: Tune these settings to get a different configuration.
-var defaultOptions = {
+const defaultOptions = {
   // What hint characters to use in order of appearance.
-  hintCharacters: "fdjkghslrueicnxmowabzpt",
+  hintCharacters: 'fdjkghslrueicnxmowabzpt',
 
   // Modifier key for activate key
-  activateModifier: "ctrl",
+  activateModifier: 'ctrl',
 
   // Activation key code
   activateKey: 77,
@@ -24,16 +24,15 @@ var defaultOptions = {
 // Window is your browser window object, options include options seen above,
 // and the env provides browser specific features.
 function boot(window, options, env) {
-  var keyMapper = new KeyMapper(window),
-    view = new View(window, env),
-    generator = hintIdGenerator.bind(null, options.hintCharacters),
-    controller = new Controller(view, generator, options);
-
-  var toggle = controller.toggle.bind(controller),
-    esc = controller.escape.bind(controller),
-    activate = controller.activateCurrentHint.bind(controller),
-    addChar = controller.addCharacter.bind(controller),
-    deactivate = controller.deactivate.bind(controller);
+  const keyMapper = new KeyMapper(window);
+  const view = new View(window, env);
+  const generator = hintIdGenerator.bind(null, options.hintCharacters);
+  const controller = new Controller(view, generator, options);
+  const toggle = controller.toggle.bind(controller);
+  const esc = controller.escape.bind(controller);
+  const activate = controller.activateCurrentHint.bind(controller);
+  const addChar = controller.addCharacter.bind(controller);
+  const deactivate = controller.deactivate.bind(controller);
 
   keyMapper.addHandler(options.activateKey, [options.activateModifier], toggle);
   keyMapper.addHandler(27, null, esc);
@@ -45,35 +44,35 @@ function boot(window, options, env) {
 // Option parser parses options from given JS object.
 // If an option is missing or it's invalid,
 // a default option will be used (see `defaultOptions` above).
-var optionParser = (function () {
+const optionParser = (() => {
   function optionParser(raw) {
-    var raw_ = raw || {};
+    const raw_ = raw || {};
     return {
       activateKey: getActivateKey(raw_) || defaultOptions.activateKey,
       activateModifier: getActivateModifier(raw_) || defaultOptions.activateModifier,
       hintCharacters: getHintCharacters(raw_) || defaultOptions.hintCharacters,
-      deactivateAfterHit: (typeof raw_.deactivateAfterHit === "boolean") ?
+      deactivateAfterHit: (typeof raw_.deactivateAfterHit === 'boolean') ?
         raw_.deactivateAfterHit : defaultOptions.deactivateAfterHit
     };
   }
 
-  function getActivateKey(raw) {
-    var key = raw.activateKey;
-    return typeof key === "string"
-      ? key.toUpperCase().charCodeAt(0)
+  function getActivateKey({ activateKey }) {
+    return typeof activateKey === 'string'
+      ? activateKey.toUpperCase().charCodeAt(0)
       : null;
   }
 
-  function getActivateModifier(raw) {
-    var mod = raw.activateModifier;
-    var isValidMod = (mod === 'alt' || mod === 'meta' || mod === 'ctrl');
+  function getActivateModifier({ activateModifier }) {
+    const mod = activateModifier;
+    const isValidMod = (mod === 'alt' || mod === 'meta' || mod === 'ctrl');
     return isValidMod ? mod : null;
   }
 
   function uniqueCharacters(s) {
-    var buffer = [], seen = {};
-    for (var i = 0; i < s.length; i++) {
-      var c = s[i];
+    const buffer = [];
+    const seen = {};
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
       if (!seen[c]) {
         buffer.push(c);
         seen[c] = true;
@@ -83,27 +82,24 @@ var optionParser = (function () {
     return buffer.join('');
   }
 
-  function getHintCharacters(raw) {
-    var hintChars = raw.hintCharacters;
-    return typeof hintChars === "string"
-      ? uniqueCharacters(hintChars.toLowerCase())
+  function getHintCharacters({ hintCharacters }) {
+    return typeof hintCharacters === 'string'
+      ? uniqueCharacters(hintCharacters.toLowerCase())
       : null;
   }
 
   return optionParser;
-}());
+})();
 
 // Controller handles the user input logic,
 // and modifies the UI (View) accordingly.
-function Controller(view, hintGenerator, options) {
-  var self = this;
-  var active = false;
-  var input = "";
-  var hints = {};
+function Controller(view, hintGenerator, { hintCharacters, deactivateAfterHit }) {
+  const self = this;
+  let active = false;
+  let input = '';
+  let hints = {};
 
-  self.escape = function (e) {
-    return whenActive(self.deactivate);
-  };
+  self.escape = e => whenActive(self.deactivate);
 
   function whenActive(f) {
     if (active) {
@@ -113,41 +109,37 @@ function Controller(view, hintGenerator, options) {
     return false;
   }
 
-  self.addCharacter = function (e) {
-    return whenActive(function () {
-      var c = String.fromCharCode(e.keyCode).toLowerCase();
-      if (options.hintCharacters.indexOf(c) >= 0) {
-        updateSelection(c);
-      }
-    });
-  };
+  self.addCharacter = ({ keyCode }) => whenActive(() => {
+    const c = String.fromCharCode(keyCode).toLowerCase();
+    if (hintCharacters.includes(c)) {
+      updateSelection(c);
+    }
+  });
 
   function updateSelection(s) {
-    withCurrentHint(function (h) { h.dehilight(); });
+    withCurrentHint(h => { h.dehilight(); });
     input += s;
-    withCurrentHint(function (h) { h.hilight(); });
+    withCurrentHint(h => { h.hilight(); });
   }
 
   function withCurrentHint(f) {
-    var hint = currentHint();
+    const hint = currentHint();
     if (hint) {
       f(hint);
     }
   }
 
-  self.activateCurrentHint = function (e) {
-    return whenActive(function () {
-      withCurrentHint(function (h) {
-        h.activate(e);
-        if (h.shouldFocus() || options.deactivateAfterHit) {
-          self.deactivate();
-        }
-      });
-      clearInput();
+  self.activateCurrentHint = e => whenActive(() => {
+    withCurrentHint(h => {
+      h.activate(e);
+      if (h.shouldFocus() || deactivateAfterHit) {
+        self.deactivate();
+      }
     });
-  };
+    clearInput();
+  });
 
-  self.toggle = function (e) {
+  self.toggle = e => {
     if (input.length > 0) {
       clearInput();
     } else if (active) {
@@ -168,18 +160,18 @@ function Controller(view, hintGenerator, options) {
     hints = view.generateHints(hintGenerator());
   }
 
-  self.deactivate = function () {
+  self.deactivate = () => {
     active = false;
     clearInput();
     view.clearHints();
   };
 
   function clearInput() {
-    var hint = currentHint();
+    const hint = currentHint();
     if (hint) {
       hint.dehilight();
     }
-    input = "";
+    input = '';
   }
 
   function currentHint() {
@@ -191,16 +183,20 @@ function Controller(view, hintGenerator, options) {
 // hints based on the given set of characters,
 // one hint per each function call.
 function hintIdGenerator(hintCharacters) {
-  var counter = 0, len = hintCharacters.length;
+  let counter = 0;
+  const len = hintCharacters.length;
 
-  return function () {
-    var num = counter, iter = 0, text = '', n;
+  return () => {
+    let num = counter;
+    let iter = 0;
+    let text = '';
+    let n;
     while (num >= 0) {
       n = num;
-      num -= Math.pow(len, 1 + iter);
+      num -= len ** (1 + iter);
       iter++;
     }
-    for (var i = 0; i < iter; i++) {
+    for (let i = 0; i < iter; i++) {
       text = hintCharacters[n % len] + text;
       n = Math.floor(n / len);
     }
@@ -210,23 +206,19 @@ function hintIdGenerator(hintCharacters) {
 }
 
 // KeyMapper is used for mapping key presses to various function calls
-var KeyMapper = (function () {
-  var possibleModifiers = ["ctrl", "alt", "meta", "shift"];
+var KeyMapper = (() => {
+  const possibleModifiers = ['ctrl', 'alt', 'meta', 'shift'];
 
   function KeyMapper(window) {
-    var self = this;
+    const self = this;
 
-    self.addHandler = function (keyCode, modifiers, handler) {
-      var modifierMap = createModifierMap(modifiers);
-      addKeyDownHandler(window, handler, function (e) {
-        return e.keyCode === keyCode && modifiersMatch(modifierMap, e);
-      });
+    self.addHandler = (keyCode, modifiers, handler) => {
+      const modifierMap = createModifierMap(modifiers);
+      addKeyDownHandler(window, handler, e => e.keyCode === keyCode && modifiersMatch(modifierMap, e));
     };
 
-    self.addDefaultNonModifierHandler = function (handler) {
-      addKeyDownHandler(window, handler, function (e) {
-        return noModifiers(e);
-      });
+    self.addDefaultNonModifierHandler = handler => {
+      addKeyDownHandler(window, handler, e => noModifiers(e));
     };
   }
 
@@ -242,34 +234,34 @@ var KeyMapper = (function () {
 
   function modifiersMatch(modifierMap, e) {
     function modMatch(modifier) {
-      var expected = modifierMap[modifier] || false;
-      var actual = e[modifier + "Key"] || false;
+      const expected = modifierMap[modifier] || false;
+      const actual = e[`${modifier}Key`] || false;
       return expected === actual;
     }
 
     return modifierMap === null || possibleModifiers.every(modMatch);
   }
 
-  function addKeyDownHandler(window, handler, predicate) {
-    var h = function (e) {
+  function addKeyDownHandler({ document }, handler, predicate) {
+    const h = e => {
       if (predicate(e) && handler(e)) {
         e.preventDefault();
         e.stopPropagation();
       }
     };
-    window.document.addEventListener('keydown', h, true);
+    document.addEventListener('keydown', h, true);
   }
 
-  function noModifiers(e) {
-    return !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey;
+  function noModifiers({ shiftKey, ctrlKey, metaKey, altKey }) {
+    return !shiftKey && !ctrlKey && !metaKey && !altKey;
   }
 
   return KeyMapper;
-}());
+})();
 
 // View renders the given hints on the browser DOM
-var View = (function () {
-  var hintableSelectorsArr = [
+var View = (() => {
+  const hintableSelectorsArr = [
     'a',
     'input:not([type=hidden])',
     'textarea',
@@ -279,45 +271,45 @@ var View = (function () {
     '[onmousedown]'
   ];
 
-  var inputTypes = [
+  const inputTypes = [
     'text', 'password', 'search', 'tel', 'url', 'email',
     'number', 'datetime', 'datetime-local'
   ];
 
-  var hintableSelectors = hintableSelectorsArr.join(', ');
-  var containerId = "yahe-hint-container";
-  var hintClass = "yahe-hint-node";
-  var hintHilightClass = "yahe-hint-hilight";
+  const hintableSelectors = hintableSelectorsArr.join(', ');
+  const containerId = 'yahe-hint-container';
+  const hintClass = 'yahe-hint-node';
+  const hintHilightClass = 'yahe-hint-hilight';
 
   function View(window, env) {
-    var self = this;
-    var clicker = env.createClicker(window);
-    var container = createHintsContainer(window);
+    const self = this;
+    const clicker = env.createClicker(window);
+    const container = createHintsContainer(window);
     appendToDocument(window, container);
 
-    self.clearHints = function () {
-      container.innerHTML = "";
+    self.clearHints = () => {
+      container.innerHTML = '';
       self.hideHints();
     };
 
-    self.showHints = function () {
-      container.style.display = "block";
+    self.showHints = () => {
+      container.style.display = 'block';
     };
 
-    self.hideHints = function () {
-      container.style.display = "none";
+    self.hideHints = () => {
+      container.style.display = 'none';
     };
 
-    self.generateHints = function (idGenerator) {
-      var nodes = getHintableNodes(window),
-        hints = {},
-        fragment = window.document.createDocumentFragment();
+    self.generateHints = idGenerator => {
+      const nodes = getHintableNodes(window);
+      const hints = {};
+      const fragment = window.document.createDocumentFragment();
 
-      for (var i = 0; i < nodes.length; i++) {
-        var node = nodes[i];
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
         if (inViewPort(node)) {
-          var hintId = idGenerator(),
-            hint = new Hint(window, clicker, hintId, node);
+          const hintId = idGenerator();
+          const hint = new Hint(window, clicker, hintId, node);
           fragment.appendChild(hint.hintNode);
           hints[hintId] = hint;
         }
@@ -329,43 +321,43 @@ var View = (function () {
     };
   }
 
-  function createHintsContainer(window) {
-    var container = window.document.createElement('div');
+  function createHintsContainer({ document }) {
+    const container = document.createElement('div');
     container.id = containerId;
-    container.style.display = "none";
+    container.style.display = 'none';
     return container;
   }
 
-  function appendToDocument(window, element) {
-    window.document.documentElement.appendChild(element);
+  function appendToDocument({ document }, element) {
+    document.documentElement.appendChild(element);
   }
 
-  function getHintableNodes(window) {
-    return window.document.querySelectorAll(hintableSelectors);
+  function getHintableNodes({ document }) {
+    return document.querySelectorAll(hintableSelectors);
   }
 
   function inViewPort(link) {
-    var cr = link.getBoundingClientRect();
+    const cr = link.getBoundingClientRect();
     return (cr.bottom > 0 && cr.right > 0 &&
       cr.width > 0 && cr.height > 0);
   }
 
   function Hint(window, clicker, hintId, hintable) {
-    var self = this;
+    const self = this;
     self.hintId = hintId;
     self.hintable = hintable;
     self.hintNode = createHintNode(window, hintId, hintable);
 
-    self.hilight = function () {
-      self.hintNode.className += " " + hintHilightClass;
+    self.hilight = () => {
+      self.hintNode.className += ` ${hintHilightClass}`;
     };
 
-    self.dehilight = function () {
-      var re = new RegExp("(\\s|^)" + hintHilightClass + "(\\s|$)");
+    self.dehilight = () => {
+      const re = new RegExp(`(\\s|^)${hintHilightClass}(\\s|$)`);
       self.hintNode.className = self.hintNode.className.replace(re, '');
     };
 
-    self.activate = function (modifiers) {
+    self.activate = modifiers => {
       if (self.shouldFocus()) {
         self.hintable.focus();
       } else {
@@ -373,8 +365,8 @@ var View = (function () {
       }
     };
 
-    self.shouldFocus = function () {
-      var el = self.hintable;
+    self.shouldFocus = () => {
+      const el = self.hintable;
       return ((el.tagName === 'INPUT' && hasInputType(el)) ||
         el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
     };
@@ -384,25 +376,36 @@ var View = (function () {
     }
   }
 
-  function createHintNode(window, hintId, hintable) {
-    var cr = hintable.getBoundingClientRect(),
-      span = window.document.createElement('span'),
-      span_top = window.pageYOffset + (cr.top > 0 ? cr.top : 0),
-      span_left = window.pageXOffset + (cr.left > 0 ? cr.left : 0) - span.offsetWidth;
+  function createHintNode({ document, pageYOffset, pageXOffset }, hintId, hintable) {
+    const cr = hintable.getBoundingClientRect();
+    const span = document.createElement('span');
+    const span_top = pageYOffset + (cr.top > 0 ? cr.top : 0);
+    const span_left = pageXOffset + (cr.left > 0 ? cr.left : 0) - span.offsetWidth;
 
     span.textContent = hintId;
     span.className = hintClass;
-    span.style.top = span_top + "px";
-    span.style.left = span_left + "px";
+    span.style.top = `${span_top}px`;
+    span.style.left = `${span_left}px`;
     return span;
   }
 
-  function hasInputType(element) {
-    return inputTypes.some(function (t) { return element.type === t; });
+  function hasInputType({ type }) {
+    return inputTypes.some(t => type === t);
   }
 
   return View;
-}());
+})();
+
+// Simulate a mouse click on a DOM element
+function simulateClick(window, element, { ctrlKey, altKey, shiftKey, metaKey }) {
+  const ev = window.document.createEvent('MouseEvent');
+  ev.initMouseEvent(
+    'click', true, true, window, 0, 0, 0, 0, 0,
+    ctrlKey, altKey, shiftKey,
+    metaKey, 0, null
+  );
+  element.dispatchEvent(ev);
+}
 
 /// Browser envs ///
 //
@@ -415,70 +418,35 @@ var View = (function () {
 
 // Chrome env
 function chromeEnv() {
-  var env = {};
-  env.createClicker = function (window) {
-    return function (element, mods) {
-      var ev = window.document.createEvent('MouseEvent');
-      ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
-        mods.ctrlKey, mods.altKey, mods.shiftKey,
-        mods.metaKey, 0, null);
-      element.dispatchEvent(ev);
-    };
-  };
+  const env = {};
+  env.createClicker = window => simulateClick.bind(null, window);
   return env;
 }
 
 // Greasemonkey / UserScript env
 function gmEnv() {
-  var env = {};
-
-  if (!String.prototype.endsWith) {
-    String.prototype.endsWith = function (searchString, position) {
-      var subjectString = this.toString();
-      if (position === undefined || position > subjectString.length) {
-        position = subjectString.length;
-      }
-      position -= searchString.length;
-      var lastIndex = subjectString.indexOf(searchString, position);
-      return lastIndex !== -1 && lastIndex === position;
-    };
-  }
-
-  function getUrl(target) {
-    return target.href;
-  }
+  const env = {};
 
   function isUrl(url) {
-    return typeof url === "string"
-      && url !== ""
-      && !url.endsWith("/#");
+    return typeof url === 'string'
+      && url !== ''
+      && !url.endsWith('/#');
   }
 
-  function isOpenNewTabClick(window, mods) {
-    return isMac(window) && mods.metaKey || mods.ctrlKey;
+  function isOpenNewTabClick(window, { metaKey, ctrlKey }) {
+    return isMac(window) && metaKey || ctrlKey;
   }
 
-  function isMac(window) {
-    return window.navigator.appVersion.indexOf("Mac") !== -1;
+  function isMac({ navigator }) {
+    return navigator.appVersion.includes('Mac');
   }
 
-  env.createClicker = function (window) {
-    function simulateClick(target, mods) {
-      var ev = window.document.createEvent('MouseEvent');
-      ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0,
-        mods.ctrlKey, mods.altKey, mods.shiftKey,
-        mods.metaKey, 0, null);
-      target.dispatchEvent(ev);
+  env.createClicker = window => (target, mods) => {
+    if (isUrl(target.href) && isOpenNewTabClick(window, mods)) {
+      GM_openInTab(target.href);
+    } else {
+      simulateClick(window, target, mods);
     }
-
-    return function (target, mods) {
-      var url = getUrl(target);
-      if (isUrl(url) && isOpenNewTabClick(window, mods)) {
-        GM_openInTab(target.href);
-      } else {
-        simulateClick(target, mods);
-      }
-    };
   };
 
   return env;
@@ -488,7 +456,7 @@ function gmEnv() {
 // and boot up YAHE!
 if (typeof chrome !== 'undefined') {
   // Chrome/Chromium plugin
-  chrome.storage.local.get(null, function (response) {
+  chrome.storage.local.get(null, response => {
     boot(window, optionParser(response), chromeEnv());
   });
 } else if (typeof GM_openInTab !== 'undefined') {
