@@ -277,7 +277,7 @@ var View = (function () {
     'button',
     '[onclick]',
     '[onmousedown]'
-  ]
+  ];
 
   var inputTypes = [
     'text', 'password', 'search', 'tel', 'url', 'email',
@@ -348,7 +348,7 @@ var View = (function () {
     var cr = link.getBoundingClientRect();
     return (cr.bottom > 0 && cr.right > 0 &&
       cr.width > 0 && cr.height > 0);
-  };
+  }
 
   function Hint(window, clicker, hintId, hintable) {
     var self = this;
@@ -493,7 +493,7 @@ if (typeof chrome !== 'undefined') {
   });
 } else if (typeof GM_openInTab !== 'undefined') {
   // GreaseMonkey / Userscript
-  boot(window, defaultOptions, gmEnv())
+  boot(window, defaultOptions, gmEnv());
 } else {
-  alert('unknown browser!')
+  alert('unknown browser!');
 }
