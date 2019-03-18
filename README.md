@@ -1,4 +1,4 @@
-# Yet Another Hints Extension
+# Yet Another Hints Extension (YAHE)
 
 I wasn't fully satisfied with the hit-a-hint extensions available for Chrome and Firefox, so I made my own.
 These are the existing extensions that worked as inspiration for this one:
@@ -29,54 +29,48 @@ In Chrome, you can customize the hint key and hint characters in the extension's
 
 Install from [Chrome Web Store][cws].
 
-### Firefox
+### Greasemonkey script in Firefox
 
 1. Install [Greasemonkey][] addon for Firefox.
-2. Open [yahe.user.js][yahejs] in Firefox, and click install.
+2. Follow the steps described in the "Building from source" section below.
 
-### Chrome
+## Building from source
 
-There are two ways to install this extension: from this extension's
-[Chrome Web Store][cws] page or from repository sources.
+If you want to edit the source code, you need the following tools installed:
 
-### Installing for Chrome from repository sources
+* [Bash][]
+* [Python][]
+* [Zip][]
+* [Git][]
 
-1. Clone YAHE Git repository: `git clone git://github.com/Lepovirta/yahe.git`
-2. Fire up you Chrome/Chromium browser, and go to the extensions section of the
-   settings page.
-3. Enable the developer mode by checking the developer mode checkbox.
-4. Click the **Load unpacked extension...** button.
-5. Select the directory where you cloned the repository to.
+Use the build script to build all components:
 
-If you want to update the extension, pull the latest changes from the
-repository to your cloned directory (`git pull`), and either restart your
-browser or hit the extension's reload button in extensions page.
+    $ ./build.sh
 
-## Extending the script
+The Chrome extension can be loaded from the build output by following these steps:
 
-If you want to edit the source code, I recommend installing the following
-tools:
+1. Fire up Chrome/Chromium, and go to the extensions settings.
+2. Enable the developer mode from the top-right corner.
+3. Click the "Load unpacked" button.
+4. Select the `output/chrome/` directory from the directory where you cloned this repository to.
 
-* [Node.JS][nodejs]
-* [NPM][] (usually ships with Node.JS)
-* [Browserify][] with NPM
+The Greasemonkey script can be loaded by opening the `output/greasemonkey/yahe.user.js` file
+from the directory where you cloned this repository to in Firefox.
 
-All the code for YAHE is located in the `src/` directory, and `yahe.js` and `yahe.user.js` are just the build outputs.
-If you have Browserify installed, you can execute `build.sh`
-file using a Bourne shell (`sh`) compatible shell to build the final script.
+If you want to change the default settings for the script,
+change the values in `yahe.js` source file.
+Remember to rebuild after changing the values.
 
-The entry point for YAHE is in the `main.js` file, which does all the
-initialization. It imports most of the code from other source files, and it's a
-good place to start reading the code.
+## Hacking
 
-If you want to change the settings for the script, change the values in
-`defaults.js` source file. Remember to rebuild the final script.
+* All the code for YAHE is located in the `yahe.js` file.
+* All the CSS is located in the `yahe.css` file.
 
 ## License
 
 (2-clause BSD license)
 
-Copyright (c) 2012-2014, Jaakko Pallari
+Copyright (c) 2012-2019, Jaakko Pallari
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -104,7 +98,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
 [greasemonkey]: https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
-[yahejs]: https://github.com/Lepovirta/yahe/raw/master/yahe.user.js
-[nodejs]: http://nodejs.org/
-[npm]: https://npmjs.org/
-[browserify]: http://browserify.org/
+[bash]: https://www.gnu.org/software/bash/
+[python]: https://www.python.org/
+[git]: https://git-scm.com/
+[zip]: http://www.info-zip.org/Zip.html
