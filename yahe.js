@@ -2,12 +2,10 @@
 YAHE: Yet Another Hints Extension
 */
 
-// Chrome and Web Extensions APIs should be compatible
-// enough for this extension to allow using chrome object
-// in place of the browser object.
-if (typeof chrome !== 'undefined') {
-  browser = chrome;
-}
+// Check the browser type we're on
+const isChrome = typeof chrome !== 'undefined' && typeof browser === 'undefined';
+const isWebExt = typeof browser !== 'undefined';
+const isGM = typeof GM_openInTab !== 'undefined';
 
 // Default options used in YAHE.
 // GREASEMONKEY: Tune these settings to get a different configuration.
@@ -425,6 +423,15 @@ function shouldOpenInNewTab({navigator}, {href}, { metaKey, ctrlKey }) {
   return isUrl && isOpenNewTabClick
 }
 
+// Click simulator with alternative new tab behaviour
+function clicker(window, target, mods, newTab) {
+  if (shouldOpenInNewTab(window, target, mods)) {
+    newTab(target.href);
+  } else {
+    simulateClick(window, target, mods);
+  }
+}
+
 /// Browser envs ///
 //
 // These functions are used for generating browser specific
@@ -434,14 +441,24 @@ function shouldOpenInNewTab({navigator}, {href}, { metaKey, ctrlKey }) {
 //   * createClicker: function that creates a click event simulator
 //
 
+function chromeEnv() {
+  const env = {};
+  env.createClicker = window => (target, mods) => {
+    return clicker(
+      window, target, mods,
+      url => chrome.runtime.sendMessage(null, {url: url})
+    );
+  };
+  return env
+}
+
 function webExtEnv() {
   const env = {};
   env.createClicker = window => (target, mods) => {
-    if (shouldOpenInNewTab(window, target, mods)) {
-      browser.runtime.sendMessage(null, {url: target.href});
-    } else {
-      simulateClick(window, target, mods);
-    }
+    return clicker(
+      window, target, mods,
+      url => browser.runtime.sendMessage(null, {url: url})
+    );
   };
   return env
 }
@@ -450,23 +467,26 @@ function webExtEnv() {
 function gmEnv() {
   const env = {};
   env.createClicker = window => (target, mods) => {
-    if (shouldOpenInNewTab(window, target, mods)) {
-      GM_openInTab(target.href);
-    } else {
-      simulateClick(window, target, mods);
-    }
+    return clicker(
+      window, target, mods,
+      url => GM_openInTab(url)
+    );
   };
   return env;
 }
 
-// Check which browser is running, load the appropriate environment,
-// and boot up YAHE!
-if (typeof browser !== 'undefined') {
+// Check which browser is running, load the appropriate environment, and boot up YAHE!
+if (isWebExt) {
   // Web extension
-  browser.storage.local.get(null).then(response => {
+  browser.storage.local.get().then(response => {
     boot(window, optionParser(response), webExtEnv());
   });
-} else if (typeof GM_openInTab !== 'undefined') {
+} else if (isChrome) {
+  // Chrome
+  chrome.storage.local.get(null, response => {
+    boot(window, optionParser(response), chromeEnv());
+  });
+} else if (isGM) {
   // GreaseMonkey / Userscript
   boot(window, defaultOptions, gmEnv());
 } else {
