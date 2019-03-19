@@ -2,21 +2,28 @@
 YAHE: Yet Another Hints Extension
 */
 
+// Chrome and Web Extensions APIs should be compatible
+// enough for this extension to allow using chrome object
+// in place of the browser object.
+if (typeof chrome !== 'undefined') {
+  browser = chrome;
+}
+
 // Default options used in YAHE.
 // GREASEMONKEY: Tune these settings to get a different configuration.
 const defaultOptions = {
-  // What hint characters to use in order of appearance.
+  // The hint characters to use in order of appearance.
   hintCharacters: 'fdjkghslrueicnxmowabzpt',
 
   // Modifier key for activate key
   activateModifier: 'ctrl',
 
   // Activation key code
-  activateKey: 77,
+  activateKey: 77, // 77 = m
 
-  // Whether the hints should always be hidden after hint activation
-  // (by default, they are only hidden after hitting something
-  // that should be focused rather than followed, i.e. a form input).
+  // Whether the hints should always be hidden after hint activation or not.
+  // By default, they are only hidden after hitting something
+  // that should be focused rather than followed, i.e. a form input.
   deactivateAfterHit: false
 };
 
@@ -398,13 +405,24 @@ var View = (() => {
 
 // Simulate a mouse click on a DOM element
 function simulateClick(window, element, { ctrlKey, altKey, shiftKey, metaKey }) {
-  const ev = window.document.createEvent('MouseEvent');
-  ev.initMouseEvent(
-    'click', true, true, window, 0, 0, 0, 0, 0,
-    ctrlKey, altKey, shiftKey,
-    metaKey, 0, null
+  const event = new MouseEvent('click', {
+    ctrlKey: ctrlKey,
+    altKey: altKey,
+    shiftKey: shiftKey,
+    metaKey: metaKey,
+    relatedTarget: element,
+  });
+  element.dispatchEvent(event);
+}
+
+// Checks if the given target should be opened in a new tab
+function shouldOpenInNewTab({navigator}, {href}, { metaKey, ctrlKey }) {
+  const isUrl = (
+    typeof href === 'string' && href !== '' && !href.endsWith('/#')
   );
-  element.dispatchEvent(ev);
+  const isMac = navigator.appVersion.includes('Mac');
+  const isOpenNewTabClick = isMac && metaKey || ctrlKey;
+  return isUrl && isOpenNewTabClick
 }
 
 /// Browser envs ///
@@ -416,48 +434,37 @@ function simulateClick(window, element, { ctrlKey, altKey, shiftKey, metaKey }) 
 //   * createClicker: function that creates a click event simulator
 //
 
-// Chrome env
-function chromeEnv() {
+function webExtEnv() {
   const env = {};
-  env.createClicker = window => simulateClick.bind(null, window);
-  return env;
+  env.createClicker = window => (target, mods) => {
+    if (shouldOpenInNewTab(window, target, mods)) {
+      browser.runtime.sendMessage(null, {url: target.href});
+    } else {
+      simulateClick(window, target, mods);
+    }
+  };
+  return env
 }
 
 // Greasemonkey / UserScript env
 function gmEnv() {
   const env = {};
-
-  function isUrl(url) {
-    return typeof url === 'string'
-      && url !== ''
-      && !url.endsWith('/#');
-  }
-
-  function isOpenNewTabClick(window, { metaKey, ctrlKey }) {
-    return isMac(window) && metaKey || ctrlKey;
-  }
-
-  function isMac({ navigator }) {
-    return navigator.appVersion.includes('Mac');
-  }
-
   env.createClicker = window => (target, mods) => {
-    if (isUrl(target.href) && isOpenNewTabClick(window, mods)) {
+    if (shouldOpenInNewTab(window, target, mods)) {
       GM_openInTab(target.href);
     } else {
       simulateClick(window, target, mods);
     }
   };
-
   return env;
 }
 
 // Check which browser is running, load the appropriate environment,
 // and boot up YAHE!
-if (typeof chrome !== 'undefined') {
-  // Chrome/Chromium plugin
-  chrome.storage.local.get(null, response => {
-    boot(window, optionParser(response), chromeEnv());
+if (typeof browser !== 'undefined') {
+  // Web extension
+  browser.storage.local.get(null).then(response => {
+    boot(window, optionParser(response), webExtEnv());
   });
 } else if (typeof GM_openInTab !== 'undefined') {
   // GreaseMonkey / Userscript

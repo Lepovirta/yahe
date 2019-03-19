@@ -4,20 +4,17 @@
   "manifest_version": 2,
   "description": "A simple hit-a-hint extension",
   "options_ui": {
-    "chrome_style": true,
-    "page": "options.html"
+    "page": "options/index.html"
   },
-  "options_page": "options.html",
   "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "permissions": [
+    "storage",
     "http://*/*",
-    "https://*/*",
-    "ftp://*/*",
-    "storage"
+    "https://*/*"
   ],
   "content_scripts": [
     {
@@ -25,7 +22,6 @@
       "matches": [
         "http://*/*",
         "https://*/*",
-        "ftp://*/*",
         "file://*/*"
       ],
       "css": [ "yahe.css" ],
@@ -33,5 +29,8 @@
       "run_at": "document_end",
       "all_frames": true
     }
-  ]
+  ],
+  "background": {
+    "scripts": ["yahe-bg.js"]
+  }
 }

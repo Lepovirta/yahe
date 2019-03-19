@@ -7,7 +7,7 @@ hash zip
 hash python
 
 OUTPUTDIR="./output"
-CHROME_OUTPUTDIR="$OUTPUTDIR/chrome"
+WE_OUTPUTDIR="$OUTPUTDIR/webextension"
 GM_OUTPUTDIR="$OUTPUTDIR/greasemonkey"
 
 print_yahe() {
@@ -20,8 +20,8 @@ git_version() {
     git describe --match 'v[0-9]*' --abbrev=0 HEAD | sed 's/^v//'
 }
 
-build_chrome_manifest() {
-    python - "$@" <<'EOF'
+build_manifest() {
+    python - "$(git_version)" "$@" <<'EOF'
 import sys, json
 with open(sys.argv[2]) as f:
     manifest = json.load(f)
@@ -31,17 +31,17 @@ with open(sys.argv[3], 'w') as f:
 EOF
 }
 
-build_chrome() {
-    echo "building chrome" >&2
-    mkdir -p "$CHROME_OUTPUTDIR"
-    cp images/icons/* "$CHROME_OUTPUTDIR/"
-    cp chrome/options* "$CHROME_OUTPUTDIR/"
-    cp yahe.css "$CHROME_OUTPUTDIR/"
-    print_yahe > "$CHROME_OUTPUTDIR/yahe.js"
-    build_chrome_manifest "$(git_version)" "chrome/manifest.json" "$CHROME_OUTPUTDIR/manifest.json"
+build_webextension() {
+    echo "building web extension" >&2
+    mkdir -p "$WE_OUTPUTDIR"
+    cp -r images/icons "$WE_OUTPUTDIR/icons"
+    cp -r options "$WE_OUTPUTDIR/options"
+    cp yahe.css yahe-bg.js "$WE_OUTPUTDIR/"
+    print_yahe > "$WE_OUTPUTDIR/yahe.js"
+    build_manifest "manifest.json" "$WE_OUTPUTDIR/manifest.json"
     (
-        cd "$CHROME_OUTPUTDIR"
-        zip -q yahe.crx *
+        cd "$WE_OUTPUTDIR"
+        zip -q -r -FS ../yahe.zip .
     )
 }
 
@@ -71,7 +71,7 @@ build_greasemonkey() {
 }
 
 build_all() {
-    build_chrome
+    build_webextension
     build_greasemonkey
 }
 
