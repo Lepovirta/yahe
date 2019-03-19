@@ -34,8 +34,8 @@ EOF
 build_webextension() {
     echo "building web extension" >&2
     mkdir -p "$WE_OUTPUTDIR"
-    cp -r images/icons "$WE_OUTPUTDIR/icons"
-    cp -r options "$WE_OUTPUTDIR/options"
+    cp -r images/icons "$WE_OUTPUTDIR/"
+    cp -r options "$WE_OUTPUTDIR/"
     cp yahe.css yahe-bg.js "$WE_OUTPUTDIR/"
     print_yahe > "$WE_OUTPUTDIR/yahe.js"
     build_manifest "manifest.json" "$WE_OUTPUTDIR/manifest.json"
