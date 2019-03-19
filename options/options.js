@@ -1,67 +1,63 @@
-var defaults = {
+const defaults = {
   activateModifier: 'ctrl',
   hintCharacters: 'fdjkghslrueicnxmowabzpt',
   activateKey: 'm',
   deactivateAfterHit: false
 };
 
-function getElements() {
-  return {
-    hintCharacters: document.getElementById('hintcharacters'),
-    activateKey: document.getElementById('activate_key'),
-    modifiers: {
-      ctrl: document.getElementById('mod_ctrl'),
-      alt: document.getElementById('mod_alt'),
-      meta: document.getElementById('mod_meta')
-    },
-    deactivate: {
-      normal: document.getElementById('deactivate_normal'),
-      always: document.getElementById('deactivate_always')
-    }
-  };
+function opt(id) {
+  return document.getElementById(id);
 }
 
-function selectedModifier(modifiers) {
-  if (modifiers.ctrl.checked) return 'ctrl';
-  if (modifiers.alt.checked) return 'alt';
-  if (modifiers.meta.checked) return 'meta';
-  return defaults.modifier;
+function optValue(id, alternative) {
+  return opt(id).value || alternative;
 }
 
-function saveOptions() {
-  var elements = getElements();
-  var options = {
-    hintCharacters: elements.hintCharacters.value || defaults.hintCharacters,
-    activateKey: elements.activateKey.value || defaults.activateKey,
-    activateModifier: selectedModifier(elements.modifiers),
-    deactivateAfterHit: elements.deactivate.always.checked
+function getChecked(name) {
+  return document.querySelector(`input[name=${name}]:checked`).value
+}
+
+function selectedModifier() {
+  return getChecked('mod') || defaults.activateModifier;
+}
+
+function selectedDeactivate() {
+  const v = getChecked('deactivate');
+  if (v === 'normal') return false;
+  if (v === 'always') return true;
+  else return defaults.deactivateAfterHit;
+}
+
+function saveOptions(e) {
+  e.preventDefault();
+  const options = {
+    hintCharacters: optValue('hintcharacters', defaults.hintCharacters),
+    activateKey: optValue('activate_key', defaults.activateKey),
+    activateModifier: selectedModifier(),
+    deactivateAfterHit: selectedDeactivate(),
   };
-  chrome.storage.local.set(options, function() {
-    showStatus('Options saved');
-  });
+  chrome.storage.local.set(options, () => showStatus());
 }
 
 function restoreOptions() {
-  var elements = getElements();
-  chrome.storage.local.get(defaults, function(options) {
-    var mod = options.activateModifier;
-    elements.hintCharacters.value = options.hintCharacters;
-    elements.activateKey.value = options.activateKey;
-    elements.modifiers.ctrl.checked = mod === 'ctrl';
-    elements.modifiers.alt.checked = mod === 'alt';
-    elements.modifiers.meta.checked = mod === 'meta';
-    elements.deactivate.normal.checked = !options.deactivateAfterHit;
-    elements.deactivate.always.checked = options.deactivateAfterHit;
+  chrome.storage.local.get(defaults, (options) => {
+    const mod = options.activateModifier;
+    opt('hintcharacters').value = options.hintCharacters;
+    opt('activate_key').value = options.activateKey;
+    opt('mod_ctrl').checked = mod === 'ctrl';
+    opt('mod_alt').checked = mod === 'alt';
+    opt('mod_meta').checked = mod === 'meta';
+    opt('deactivate_normal').checked = !options.deactivateAfterHit;
+    opt('deactivate_always').checked = options.deactivateAfterHit;
   });
 }
 
-function showStatus(text) {
+function showStatus() {
   var status = document.getElementById('status');
-  status.textContent = text;
+  status.textContent = 'Options saved';
   window.setTimeout(function() {
     status.textContent = '';
   }, 750, false);
 }
-
 document.addEventListener('DOMContentLoaded', restoreOptions);
-document.getElementById('save').addEventListener('click', saveOptions);
+document.querySelector('form').addEventListener('submit', saveOptions);

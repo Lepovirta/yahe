@@ -1,32 +1,39 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Yet Another Hints Extension options</title>
-    <meta charset="utf-8" />
-    <style>
-      ul {
-        list-style: none;
-      }
-      li {
-        margin: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <p>
-      <label for="hintcharacters">
-        <span>Hint characters: </span>
-        <input type="text" id="hintcharacters" />
-      </label>
-    </p>
 
-    <p>
-      <label for="activate_key">
-        <span>Shortcut key: </span>
-        <input type="text" id="activate_key" />
-      </label>
-    </p>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
 
+    li {
+      margin: 4px;
+    }
+
+    fieldset {
+      margin: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <form>
+    <ul>
+      <li>
+        <label for="hintcharacters">
+          Hint characters: <input type="text" id="hintcharacters" />
+        </label>
+      </li>
+      <li>
+        <label for="activate_key">
+          Shortcut key: <input type="text" id="activate_key" />
+        </label>
+      </li>
+    </ul>
     <fieldset>
       <legend>Modifier for shortcut key</legend>
       <ul>
@@ -50,33 +57,27 @@
         </li>
       </ul>
     </fieldset>
-
     <fieldset>
       <legend>After I hit a hint...</legend>
       <ul>
         <li>
           <label for="deactivate_normal">
-            <input type="radio" value="normal" name="deactivate"
-              checked="true" id="deactivate_normal" />
+            <input type="radio" value="normal" name="deactivate" checked="true" id="deactivate_normal" />
             keep the hints on screen so I can hit another one
           </label>
         </li>
         <li>
           <label for="deactivate_always">
-            <input type="radio" value="always" name="deactivate"
-              id="deactivate_always" />
+            <input type="radio" value="always" name="deactivate" id="deactivate_always" />
             hide the hints
           </label>
         </li>
       </ul>
     </fieldset>
+    <input type="submit" value="Save" id="save" />
+    <span id="status"></span>
+  </form>
+  <script src="options.js"></script>
+</body>
 
-    <p>
-      <input type="submit" value="Save" id="save" />
-    </p>
-
-    <p id="status">
-    </p>
-    <script type="application/javascript" src="options.js"></script>
-  </body>
 </html>
