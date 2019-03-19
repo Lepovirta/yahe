@@ -5,7 +5,6 @@
   "description": "A simple hit-a-hint extension",
   "options_ui": {
     "page": "options/index.html",
-    "browser_style": true,
     "chrome_style": true
   },
   "icons": {
