@@ -1,11 +1,6 @@
 # ![YAHE logo](images/icons/icon32.png) Yet Another Hints Extension (YAHE)
 
-I wasn't fully satisfied with the hit-a-hint extensions available for Chrome and Firefox, so I made my own.
-These are the existing extensions that worked as inspiration for this one:
-
-* [Hints script in DWB][hhdwb]
-* [Hit-a-Hint for Opera][hhopera] (hint code generation)
-* [Keyboard Navigation by xnoreq][kbnav]
+Yet Another Hints Extension is a browser extension that allows you to click elements without using your mouse.
 
 ## Usage
 
@@ -76,6 +71,15 @@ If you want to change the default settings for the script,
 change the values in `yahe.js` source file.
 Remember to rebuild after changing the values.
 
+## Inspiration
+
+I wouldn't have created this extension,
+if it wasn't for the existing hit-a-hint extensions that were already out there.
+These are the browsers and extensions that worked as an inspiration for YAHE:
+
+* Hints script in [DWB][]
+* [Hit-a-Hint for Opera][hhopera] (hint code generation)
+
 ## License
 
 (2-clause BSD license)
@@ -103,9 +107,6 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-[hhopera]: https://github.com/hogelog/hit-a-hint-opera
-[hhdwb]: https://bitbucket.org/portix/dwb/src/0583e44d0164/scripts/hints.js
-[kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
 [ffao]: https://addons.mozilla.org/en-US/firefox/addon/yet-another-hints-extension/
 [greasemonkey]: https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
@@ -113,3 +114,5 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [python]: https://www.python.org/
 [git]: https://git-scm.com/
 [zip]: http://www.info-zip.org/Zip.html
+[hhopera]: https://github.com/hogelog/hit-a-hint-opera
+[dwb]: https://portix.bitbucket.io/dwb/
