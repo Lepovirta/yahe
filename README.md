@@ -29,14 +29,23 @@ In Chrome, you can customize the hint key and hint characters in the extension's
 
 Install from [Chrome Web Store][cws].
 
+### Firefox
+
+Install from [Firefox Add-ons][ffao]
+
 ### Greasemonkey script in Firefox
 
-1. Install [Greasemonkey][] addon for Firefox.
-2. Follow the steps described in the "Building from source" section below.
+Download the latest `yahe.user.js` file from the [releases page](https://github.com/Lepovirta/yahe/releases),
+and open it with [Greasemonkey][].
 
-## Building from source
+## Hacking
 
-If you want to edit the source code, you need the following tools installed:
+All the code for YAHE is located in the `yahe.js` and `yahe-bg.js` files.
+The first file is loaded in each browser tab to show and control hints,
+and the second one as a background process for opening links in new tabs.
+
+If you want to build the extension packages yourself,
+you need the following tools installed:
 
 * [Bash][]
 * [Python][]
@@ -54,17 +63,18 @@ The Chrome extension can be loaded from the build output by following these step
 3. Click the "Load unpacked" button.
 4. Select the `output/chrome/` directory from the directory where you cloned this repository to.
 
-The Greasemonkey script can be loaded by opening the `output/greasemonkey/yahe.user.js` file
-from the directory where you cloned this repository to in Firefox.
+The Firefox extension can be loaded from the build output by following these steps:
+
+1. Fire up Firefox, and go to this page: `about:debugging`.
+2. Check the "Enable add-on debugging" box.
+3. Click the "Load Temporary Add-on..." button.
+4. Select the `output/webextension/` directory from the directory where you cloned this repository to.
+
+The Greasemonkey script can be loaded by opening the `output/greasemonkey/yahe.user.js` file from the directory where you cloned this repository to.
 
 If you want to change the default settings for the script,
 change the values in `yahe.js` source file.
 Remember to rebuild after changing the values.
-
-## Hacking
-
-* All the code for YAHE is located in the `yahe.js` file.
-* All the CSS is located in the `yahe.css` file.
 
 ## License
 
@@ -97,6 +107,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [hhdwb]: https://bitbucket.org/portix/dwb/src/0583e44d0164/scripts/hints.js
 [kbnav]: https://chrome.google.com/webstore/detail/abcekjakjehkpheoaadhkjfcdodpjbgk
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
+[ffao]: https://addons.mozilla.org/en-US/firefox/addon/yet-another-hints-extension/
 [greasemonkey]: https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
 [bash]: https://www.gnu.org/software/bash/
 [python]: https://www.python.org/
