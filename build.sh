@@ -8,11 +8,12 @@ hash python
 
 OUTPUTDIR="./output"
 WE_OUTPUTDIR="$OUTPUTDIR/webextension"
+CHROME_OUTPUTDIR="$OUTPUTDIR/chrome"
 GM_OUTPUTDIR="$OUTPUTDIR/greasemonkey"
 
-print_yahe() {
+wrap_js() {
     echo '(function() {'
-    cat yahe.js
+    cat "$1"
     echo '}());'
 }
 
@@ -23,25 +24,47 @@ git_version() {
 build_manifest() {
     python - "$(git_version)" "$@" <<'EOF'
 import sys, json
-with open(sys.argv[2]) as f:
-    manifest = json.load(f)
+manifest = {}
+for arg in sys.argv[3:]:
+    with open(arg) as f:
+        manifest.update(json.load(f))
 manifest['version'] = sys.argv[1]
-with open(sys.argv[3], 'w') as f:
+with open(sys.argv[2], 'w') as f:
     json.dump(manifest, f, indent=4)
 EOF
 }
 
+create_common_resources() {
+    local outdir=$1
+    mkdir -p "$outdir"
+    cp -r images/icons "$outdir/"
+    cp -r options "$outdir/"
+    cp yahe.css "$outdir/"
+    wrap_js yahe.js > "$outdir/yahe.js"
+    wrap_js yahe-bg.js > "$outdir/yahe-bg.js"
+}
+
 build_webextension() {
     echo "building web extension" >&2
-    mkdir -p "$WE_OUTPUTDIR"
-    cp -r images/icons "$WE_OUTPUTDIR/"
-    cp -r options "$WE_OUTPUTDIR/"
-    cp yahe.css yahe-bg.js "$WE_OUTPUTDIR/"
-    print_yahe > "$WE_OUTPUTDIR/yahe.js"
-    build_manifest "manifest.json" "$WE_OUTPUTDIR/manifest.json"
+    create_common_resources "$WE_OUTPUTDIR"
+    build_manifest \
+        "$WE_OUTPUTDIR/manifest.json" \
+        "manifest.json" "manifest.webext.json"
     (
         cd "$WE_OUTPUTDIR"
-        zip -q -r -FS ../yahe.zip .
+        zip -q -r -FS ../yahe.webext.zip .
+    )
+}
+
+build_chrome() {
+    echo "building chrome" >&2
+    create_common_resources "$CHROME_OUTPUTDIR"
+    build_manifest \
+        "$CHROME_OUTPUTDIR/manifest.json" \
+        "manifest.json"
+    (
+        cd "$CHROME_OUTPUTDIR"
+        zip -q -r -FS ../yahe.chrome.zip .
     )
 }
 
@@ -61,7 +84,7 @@ EOF
     printf 'GM_addStyle("'
     tr -d '\n' < yahe.css
     echo '");'
-    print_yahe
+    wrap_js yahe.js
 }
 
 build_greasemonkey() {
@@ -72,6 +95,7 @@ build_greasemonkey() {
 
 build_all() {
     build_webextension
+    build_chrome
     build_greasemonkey
 }
 
