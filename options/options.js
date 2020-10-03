@@ -6,6 +6,7 @@ const defaults = {
   activateKey: 'm',
   deactivateAfterHit: false,
   focusOnNewTab: false,
+  newTabPosition: 'relatedAfterCurrent',
 };
 
 function opt(id) {
@@ -39,6 +40,7 @@ function saveOptions(e) {
     activateModifier: selectedModifier(),
     deactivateAfterHit: selectedDeactivate(),
     focusOnNewTab: opt('focus_on_newtab').checked || defaults.focusOnNewTab,
+    newTabPosition: getChecked('newTabPosition'),
   };
   if (isChrome) {
     chrome.storage.local.set(options, () => showStatus());
@@ -59,6 +61,9 @@ function restoreOptions() {
     opt('deactivate_normal').checked = !options.deactivateAfterHit;
     opt('deactivate_always').checked = options.deactivateAfterHit;
     opt('focus_on_newtab').checked = options.focusOnNewTab;
+    opt('newTabPosition_default').checked = options.newTabPosition === 'relatedAfterCurrent';
+    opt('newTabPosition_afterCurrent').checked = options.newTabPosition === 'afterCurrent';
+    opt('newTabPosition_atEnd').checked = options.newTabPosition === 'atEnd';
   }
 
   if (isChrome) {
