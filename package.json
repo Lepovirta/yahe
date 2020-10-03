@@ -1,0 +1,25 @@
+{
+  "name": "yahe",
+  "version": "0.0.0",
+  "description": "Yet Another Hints Extension",
+  "main": "yahe.js",
+  "scripts": {
+    "test": "eslint options/*.js *.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lepovirta/yahe.git"
+  },
+  "author": "Jaakko Pallari",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/Lepovirta/yahe/issues"
+  },
+  "homepage": "https://github.com/Lepovirta/yahe#readme",
+  "devDependencies": {
+    "eslint": "^7.10.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0"
+  }
+}
