@@ -1,26 +1,9 @@
+/* global chrome, browser */
 const isChrome = typeof chrome !== 'undefined' && typeof browser === 'undefined';
 
 const defaults = {
   focusOnNewTab: false,
   newTabPosition: 'relatedAfterCurrent',
-}
-
-function combinedOptions(options) {
-  return Object.assign(Object.assign({}, defaults), options);
-}
-
-function openLink(options, sender, { url }) {
-  const currentTabIndex = getTabIndex(sender);
-  const params = {
-    url: url,
-    active: options.focusOnNewTab,
-    index: nextTabIndexFromCurrentIndex(options.newTabPosition, currentTabIndex),
-  };
-  if (isChrome) {
-    chrome.tabs.create(params);
-  } else {
-    browser.tabs.create(params);
-  }
 };
 
 function getTabIndex(sender) {
@@ -35,7 +18,7 @@ function nextTabIndexFromCurrentIndex(newTabPosition, index) {
   if (typeof index === 'undefined') {
     return undefined;
   }
-  switch(newTabPosition) {
+  switch (newTabPosition) {
     case 'relatedAfterCurrent':
       return undefined;
     case 'afterCurrent':
@@ -46,6 +29,22 @@ function nextTabIndexFromCurrentIndex(newTabPosition, index) {
       // tabs than the number below (wow!), then the tab will not
       // be placed all the way to the end.
       return 100000;
+    default:
+      return undefined;
+  }
+}
+
+function openLink(options, sender, { url }) {
+  const currentTabIndex = getTabIndex(sender);
+  const params = {
+    url,
+    active: options.focusOnNewTab,
+    index: nextTabIndexFromCurrentIndex(options.newTabPosition, currentTabIndex),
+  };
+  if (isChrome) {
+    chrome.tabs.create(params);
+  } else {
+    browser.tabs.create(params);
   }
 }
 
@@ -64,7 +63,7 @@ function loadStorage(f) {
 function messageHandler(message, sender) {
   if (isValidMessage(message)) {
     loadStorage(
-      options => openLink(combinedOptions(options), sender, message)
+      (options) => openLink({ ...defaults, ...options }, sender, message),
     );
   }
 }
