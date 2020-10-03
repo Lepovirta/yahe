@@ -1,3 +1,4 @@
+/* global chrome, browser */
 const isChrome = typeof chrome !== 'undefined' && typeof browser === 'undefined';
 
 const defaults = {
@@ -18,7 +19,7 @@ function optValue(id, alternative) {
 }
 
 function getChecked(name) {
-  return document.querySelector(`input[name=${name}]:checked`).value
+  return document.querySelector(`input[name=${name}]:checked`).value;
 }
 
 function selectedModifier() {
@@ -29,7 +30,15 @@ function selectedDeactivate() {
   const v = getChecked('deactivate');
   if (v === 'normal') return false;
   if (v === 'always') return true;
-  else return defaults.deactivateAfterHit;
+  return defaults.deactivateAfterHit;
+}
+
+function showStatus() {
+  const status = document.getElementById('status');
+  status.textContent = 'Options saved';
+  window.setTimeout(() => {
+    status.textContent = '';
+  }, 750, false);
 }
 
 function saveOptions(e) {
@@ -43,15 +52,15 @@ function saveOptions(e) {
     newTabPosition: getChecked('newTabPosition'),
   };
   if (isChrome) {
-    chrome.storage.local.set(options, () => showStatus());
+    chrome.storage.local.set(options, showStatus);
   } else {
-    browser.storage.local.set(options).then(() => showStatus());
+    browser.storage.local.set(options).then(showStatus);
   }
 }
 
 function restoreOptions() {
   function restore(foundOpts) {
-    const options = Object.assign(Object.assign({}, defaults), foundOpts);
+    const options = { ...defaults, ...foundOpts };
     const mod = options.activateModifier;
     opt('hintcharacters').value = options.hintCharacters;
     opt('activate_key').value = options.activateKey;
@@ -71,14 +80,6 @@ function restoreOptions() {
   } else {
     browser.storage.local.get().then(restore);
   }
-}
-
-function showStatus() {
-  var status = document.getElementById('status');
-  status.textContent = 'Options saved';
-  window.setTimeout(() => {
-    status.textContent = '';
-  }, 750, false);
 }
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
