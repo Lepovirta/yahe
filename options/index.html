@@ -79,6 +79,29 @@
         </li>
       </ul>
     </fieldset>
+    <fieldset>
+      <legend>New tab position</legend>
+      <ul>
+        <li>
+          <label for="newTabPosition_default">
+            <input type="radio" value="relatedAfterCurrent" name="newTabPosition" checked="true" id="newTabPosition_default" />
+            Let the browser decide
+          </label>
+        </li>
+        <li>
+          <label for="newTabPosition_afterCurrent">
+            <input type="radio" value="afterCurrent" name="newTabPosition" id="newTabPosition_afterCurrent" />
+            Next to the current tab
+          </label>
+        </li>
+        <li>
+          <label for="newTabPosition_atEnd">
+            <input type="radio" value="atEnd" name="newTabPosition" id="newTabPosition_atEnd" />
+            At the end of the tab strip
+          </label>
+        </li>
+      </ul>
+    </fieldset>
     <input type="submit" value="Save" id="save" />
     <span id="status"></span>
   </form>

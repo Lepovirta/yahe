@@ -2,20 +2,52 @@ const isChrome = typeof chrome !== 'undefined' && typeof browser === 'undefined'
 
 const defaults = {
   focusOnNewTab: false,
+  newTabPosition: 'relatedAfterCurrent',
 }
 
 function combinedOptions(options) {
   return Object.assign(Object.assign({}, defaults), options);
 }
 
-function openLink({ focusOnNewTab }, { url }) {
-  const params = { url: url, active: focusOnNewTab };
+function openLink(options, sender, { url }) {
+  const currentTabIndex = getTabIndex(sender);
+  const params = {
+    url: url,
+    active: options.focusOnNewTab,
+    index: nextTabIndexFromCurrentIndex(options.newTabPosition, currentTabIndex),
+  };
   if (isChrome) {
     chrome.tabs.create(params);
   } else {
     browser.tabs.create(params);
   }
 };
+
+function getTabIndex(sender) {
+  if (typeof sender.tab === 'undefined') {
+    return undefined;
+  }
+  return sender.tab.index;
+}
+
+function nextTabIndexFromCurrentIndex(newTabPosition, index) {
+  // Current index not known? Next one is not known either.
+  if (typeof index === 'undefined') {
+    return undefined;
+  }
+  switch(newTabPosition) {
+    case 'relatedAfterCurrent':
+      return undefined;
+    case 'afterCurrent':
+      return index + 1;
+    case 'atEnd':
+      // Selecting a huge number as the tab index will hopefully
+      // place the tab to end of the tab strip. If you have more
+      // tabs than the number below (wow!), then the tab will not
+      // be placed all the way to the end.
+      return 100000;
+  }
+}
 
 function isValidMessage(message) {
   return typeof message.url === 'string';
@@ -29,10 +61,10 @@ function loadStorage(f) {
   }
 }
 
-function messageHandler(message) {
+function messageHandler(message, sender) {
   if (isValidMessage(message)) {
     loadStorage(
-      options => openLink(combinedOptions(options), message)
+      options => openLink(combinedOptions(options), sender, message)
     );
   }
 }

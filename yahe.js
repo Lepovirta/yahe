@@ -211,7 +211,7 @@ function hintIdGenerator(hintCharacters) {
 }
 
 // KeyMapper is used for mapping key presses to various function calls
-var KeyMapper = (() => {
+const KeyMapper = (() => {
   const possibleModifiers = ['ctrl', 'alt', 'meta', 'shift'];
 
   function KeyMapper(window) {
@@ -265,7 +265,7 @@ var KeyMapper = (() => {
 })();
 
 // View renders the given hints on the browser DOM
-var View = (() => {
+const View = (() => {
   const hintableSelectorsArr = [
     'a',
     'input:not([type=hidden])',
@@ -424,7 +424,7 @@ function shouldOpenInNewTab({navigator}, {href}, { metaKey, ctrlKey }) {
 }
 
 // Click simulator with alternative new tab behaviour
-function clicker(window, target, mods, newTab) {
+function clicker({window, target, mods, newTab}) {
   if (shouldOpenInNewTab(window, target, mods)) {
     newTab(target.href);
   } else {
@@ -443,22 +443,32 @@ function clicker(window, target, mods, newTab) {
 
 function chromeEnv() {
   const env = {};
+  function newTab(url) {
+    chrome.runtime.sendMessage(null, {url: url});
+  }
   env.createClicker = window => (target, mods) => {
-    return clicker(
-      window, target, mods,
-      url => chrome.runtime.sendMessage(null, {url: url})
-    );
+    return clicker({
+      window: window,
+      target: target,
+      mods: mods,
+      newTab: newTab,
+    });
   };
   return env
 }
 
 function webExtEnv() {
   const env = {};
+  function newTab(url) {
+    browser.runtime.sendMessage(null, {url: url});
+  }
   env.createClicker = window => (target, mods) => {
-    return clicker(
-      window, target, mods,
-      url => browser.runtime.sendMessage(null, {url: url})
-    );
+    return clicker({
+      window: window,
+      target: target,
+      mods: mods,
+      newTab: newTab,
+    });
   };
   return env
 }
@@ -466,11 +476,16 @@ function webExtEnv() {
 // Greasemonkey / UserScript env
 function gmEnv() {
   const env = {};
+  function newTab(url) {
+    GM_openInTab(url)
+  }
   env.createClicker = window => (target, mods) => {
-    return clicker(
-      window, target, mods,
-      url => GM_openInTab(url)
-    );
+    return clicker({
+      window: window,
+      target: target,
+      mods: mods,
+      newTab: newTab,
+    });
   };
   return env;
 }
