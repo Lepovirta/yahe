@@ -1,10 +1,9 @@
 /*
 YAHE: Yet Another Hints Extension
 */
-/* global chrome, browser, GM_openInTab */
+/* global chrome, browser */
 
 // Default options used in YAHE.
-// GREASEMONKEY: Tune these settings to get a different configuration.
 const defaultOptions = {
   // The hint characters to use in order of appearance.
   hintCharacters: 'fdjkghslrueicnxmowabzpt',
@@ -501,18 +500,6 @@ function boot(window, options, env) {
     chrome.storage.local.get(null, (response) => {
       boot(window, parseOptions(response), env);
     });
-    return;
-  }
-
-  // GreaseMonkey / Userscript
-  // GreaseMonkey provides a custom function for opening new tabs that we can use.
-  if (typeof GM_openInTab !== 'undefined') { // eslint-disable-line camelcase
-    const env = {
-      openInTab: (url) => {
-        GM_openInTab(url);
-      },
-    };
-    boot(window, defaultOptions, env);
     return;
   }
 
