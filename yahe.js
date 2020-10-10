@@ -3,11 +3,6 @@ YAHE: Yet Another Hints Extension
 */
 /* global chrome, browser, GM_openInTab */
 
-// Check the browser type we're on
-const isChrome = typeof chrome !== 'undefined' && typeof browser === 'undefined';
-const isWebExt = typeof browser !== 'undefined';
-const isGM = typeof GM_openInTab !== 'undefined'; // eslint-disable-line camelcase
-
 // Default options used in YAHE.
 // GREASEMONKEY: Tune these settings to get a different configuration.
 const defaultOptions = {
@@ -26,10 +21,13 @@ const defaultOptions = {
   deactivateAfterHit: false,
 };
 
-// Option parser parses options from given JS object.
+// Key modifiers that can be used with activating YAHE
+const possibleKeyModifiers = ['ctrl', 'alt', 'meta'];
+
+// Parses options from given JS object.
 // If an option is missing or it's invalid,
 // a default option will be used (see `defaultOptions` above).
-const optionParser = (() => {
+const parseOptions = (() => {
   function getActivateKey({ activateKey }) {
     return typeof activateKey === 'string'
       ? activateKey.toUpperCase().charCodeAt(0)
@@ -37,27 +35,8 @@ const optionParser = (() => {
   }
 
   function getActivateModifier({ activateModifier }) {
-    const mod = activateModifier;
-    const isValidMod = (mod === 'alt' || mod === 'meta' || mod === 'ctrl');
-    return isValidMod ? mod : null;
-  }
-
-  function uniqueCharacters(s) {
-    const buffer = [];
-    const seen = {};
-    for (let i = 0; i < s.length; i += 1) {
-      const c = s[i];
-      if (!seen[c]) {
-        buffer.push(c);
-        seen[c] = true;
-      }
-    }
-    return buffer.join('');
-  }
-
-  function getHintCharacters({ hintCharacters }) {
-    return typeof hintCharacters === 'string'
-      ? uniqueCharacters(hintCharacters.toLowerCase())
+    return possibleKeyModifiers.includes(activateModifier)
+      ? activateModifier
       : null;
   }
 
@@ -66,145 +45,146 @@ const optionParser = (() => {
     return {
       activateKey: getActivateKey(raw) || defaultOptions.activateKey,
       activateModifier: getActivateModifier(raw) || defaultOptions.activateModifier,
-      hintCharacters: getHintCharacters(raw) || defaultOptions.hintCharacters,
+      hintCharacters: typeof raw.hintCharacters === 'string'
+        ? raw.hintCharacters : defaultOptions.hintCharacters,
       deactivateAfterHit: typeof raw.deactivateAfterHit === 'boolean'
         ? raw.deactivateAfterHit : defaultOptions.deactivateAfterHit,
     };
   };
 })();
 
-// Controller handles the user input logic,
-// and modifies the UI (View) accordingly.
-function Controller(view, hintGenerator, { hintCharacters, deactivateAfterHit }) {
+// Enum for all the states of YAHE
+const inputStates = {
+  selected: 'selected',
+  activated: 'activated',
+  deactivated: 'deactivated',
+};
+
+function State() {
   const self = this;
   let active = false;
   let input = '';
   let hints = {};
 
-  function whenActive(f) {
+  // Only call the given function when active flag is true.
+  self.whenActive = (f) => {
     if (active) {
       f();
       return true;
     }
     return false;
-  }
+  };
 
-  self.escape = () => whenActive(self.deactivate);
+  // Get the current hint based on the current input
+  self.currentHint = () => hints[input.toLowerCase()];
 
-  function currentHint() {
-    return hints[input.toLowerCase()];
-  }
-
-  function withCurrentHint(f) {
-    const hint = currentHint();
+  // Call a function with the currently selected hint,
+  // if one is selected.
+  self.withCurrentHint = (f) => {
+    const hint = self.currentHint();
     if (hint) {
       f(hint);
     }
-  }
+  };
 
-  function updateSelection(s) {
-    withCurrentHint((h) => { h.dehilight(); });
+  self.getInput = () => input;
+
+  self.addInput = (s) => {
     input += s;
-    withCurrentHint((h) => { h.hilight(); });
-  }
+  };
 
-  self.addCharacter = ({ keyCode }) => whenActive(() => {
-    const c = String.fromCharCode(keyCode).toLowerCase();
-    if (hintCharacters.includes(c)) {
-      updateSelection(c);
-    }
-  });
-
-  function clearInput() {
-    const hint = currentHint();
-    if (hint) {
-      hint.dehilight();
-    }
+  self.clearInput = () => {
     input = '';
-  }
+  };
 
-  self.activateCurrentHint = (e) => whenActive(() => {
-    withCurrentHint((h) => {
-      h.activate(e);
-      if (h.shouldFocus() || deactivateAfterHit) {
-        self.deactivate();
-      }
-    });
-    clearInput();
-  });
+  self.setHints = (hs) => {
+    hints = hs;
+  };
 
-  function newHints() {
-    hints = view.generateHints(hintGenerator());
-  }
-
-  function activate() {
+  self.activate = () => {
     active = true;
-    newHints();
-    view.showHints();
-  }
-
-  self.toggle = () => {
-    if (input.length > 0) {
-      clearInput();
-    } else if (active) {
-      self.deactivate();
-    } else {
-      activate();
-    }
-    return true;
   };
 
   self.deactivate = () => {
     active = false;
-    clearInput();
-    view.clearHints();
+    self.clearInput();
+  };
+
+  self.inputState = () => {
+    if (input.length > 0) {
+      return inputStates.selected;
+    }
+    if (active) {
+      return inputStates.activated;
+    }
+    return inputStates.deactivated;
   };
 }
 
-// Hint ID generator creates a function that generates
-// hints based on the given set of characters,
-// one hint per each function call.
-function hintIdGenerator(hintCharacters) {
-  let counter = 0;
-  const len = hintCharacters.length;
+function sanitizeHintCharacters(hintCharacters) {
+  return [...hintCharacters.toLowerCase()].filter(
+    (value, index, self) => self.indexOf(value) === index,
+  );
+}
 
-  return () => {
-    let num = counter;
-    let iter = 0;
-    let text = '';
-    let n;
-    while (num >= 0) {
-      n = num;
-      num -= len ** (1 + iter);
-      iter += 1;
-    }
-    for (let i = 0; i < iter; i += 1) {
-      text = hintCharacters[n % len] + text;
-      n = Math.floor(n / len);
-    }
-    counter += 1;
-    return text;
+// Generates hint strings in the order of the given hint characters.
+function HintIdGenerator(rawHintCharacters) {
+  const self = this;
+  const hintCharacters = sanitizeHintCharacters(rawHintCharacters);
+  const charSet = new Set(hintCharacters);
+
+  // Check if the given character is part of the hint characters
+  self.includes = (c) => charSet.has(c);
+
+  // Start a new hint generator function.
+  // One hint string is created per each call to the resulting function.
+  self.start = () => {
+    const len = hintCharacters.length;
+
+    // Number of hints generator so far.
+    // Used for tracking the starting point for the next hint.
+    let counter = 0;
+
+    return () => {
+      let text = ''; // hint text buffer
+      let charCount = 0; // number of characters needed for the hint
+      let charIndex; // index of the next hint character
+
+      // Calculate how many characters are needed for the hint
+      // based on how many hints have been generated so far,
+      // and which character is the next one to be used.
+      let num = counter;
+      while (num >= 0) {
+        charIndex = num;
+        num -= len ** (1 + charCount);
+        charCount += 1;
+      }
+
+      // Build the hint string
+      for (let i = 0; i < charCount; i += 1) {
+        text = hintCharacters[charIndex % len] + text;
+        charIndex = Math.floor(charIndex / len);
+      }
+
+      // Increment the starting point for the next hint.
+      counter += 1;
+      return text;
+    };
   };
 }
 
 // KeyMapper is used for mapping key presses to various function calls
-const KeyMapper = (() => {
-  const possibleModifiers = ['ctrl', 'alt', 'meta', 'shift'];
+function KeyMapper(window) {
+  const self = this;
 
-  function createModifierMap(modifiers) {
-    return modifiers === null
-      ? null
-      : Object.fromEntries(modifiers.map((mod) => [mod, true]));
-  }
-
-  function modifiersMatch(modifierMap, e) {
+  function modifiersMatch(modifierSet, e) {
     function modMatch(modifier) {
-      const expected = modifierMap[modifier] || false;
+      const expected = modifierSet.has(modifier) || false;
       const actual = e[`${modifier}Key`] || false;
       return expected === actual;
     }
 
-    return modifierMap === null || possibleModifiers.every(modMatch);
+    return modifierSet.size === 0 || possibleKeyModifiers.every(modMatch);
   }
 
   function addKeyDownHandler({ document }, handler, predicate) {
@@ -223,71 +203,51 @@ const KeyMapper = (() => {
     return !shiftKey && !ctrlKey && !metaKey && !altKey;
   }
 
-  return (window) => {
-    const self = this;
-
-    self.addHandler = (keyCode, modifiers, handler) => {
-      const modifierMap = createModifierMap(modifiers);
-      addKeyDownHandler(
-        window, handler,
-        (e) => e.keyCode === keyCode && modifiersMatch(modifierMap, e),
-      );
-    };
-
-    self.addDefaultNonModifierHandler = (handler) => {
-      addKeyDownHandler(window, handler, noModifiers);
-    };
+  self.addHandler = (keyCode, modifiers, handler) => {
+    const modifierSet = new Set(modifiers);
+    addKeyDownHandler(
+      window, handler,
+      (e) => e.keyCode === keyCode && modifiersMatch(modifierSet, e),
+    );
   };
-})();
 
-// View renders the given hints on the browser DOM
-const View = (() => {
-  const hintableSelectorsArr = [
-    'a',
-    'input:not([type=hidden])',
-    'textarea',
-    'select',
-    'button',
-    '[onclick]',
-    '[onmousedown]',
-  ];
+  self.addDefaultNonModifierHandler = (handler) => {
+    addKeyDownHandler(window, handler, noModifiers);
+  };
+}
 
-  const inputTypes = [
-    'text', 'password', 'search', 'tel', 'url', 'email',
-    'number', 'datetime', 'datetime-local',
-  ];
+// List of all the elements that can be activated using hints
+const hintableSelectors = [
+  'a',
+  'input:not([type=hidden])',
+  'textarea',
+  'select',
+  'button',
+  '[onclick]',
+  '[onmousedown]',
+].join(', ');
 
-  const hintableSelectors = hintableSelectorsArr.join(', ');
-  const containerId = 'yahe-hint-container';
-  const hintClass = 'yahe-hint-node';
-  const hintHilightClass = 'yahe-hint-hilight';
+// Set of all the input types that can be focused on using hints
+// instead of activating them.
+const inputTypes = new Set([
+  'text', 'password', 'search', 'tel', 'url', 'email',
+  'number', 'datetime', 'datetime-local',
+]);
 
-  function createHintsContainer({ document }) {
-    const container = document.createElement('div');
-    container.id = containerId;
-    container.style.display = 'none';
-    return container;
-  }
+// IDs and class names used for YAHE DOM elements
+const hintContainerId = 'yahe-hint-container';
+const hintClass = 'yahe-hint-node';
+const hintHighlightClass = 'yahe-hint-highlight';
 
-  function appendToDocument({ document }, element) {
-    document.documentElement.appendChild(element);
-  }
+// Representation of a hint on screen
+function Hint(window, click, hintId, hintable) {
+  const self = this;
+  self.hintId = hintId;
+  self.hintable = hintable;
 
-  function getHintableNodes({ document }) {
-    return document.querySelectorAll(hintableSelectors);
-  }
-
-  function inViewPort(link) {
-    const cr = link.getBoundingClientRect();
-    return (cr.bottom > 0 && cr.right > 0
-      && cr.width > 0 && cr.height > 0);
-  }
-
-  function hasInputType({ type }) {
-    return inputTypes.some((t) => type === t);
-  }
-
-  function createHintNode({ document, pageYOffset, pageXOffset }, hintId, hintable) {
+  // DOM node for the hint tag
+  self.hintNode = (() => {
+    const { document, pageYOffset, pageXOffset } = window;
     const cr = hintable.getBoundingClientRect();
     const span = document.createElement('span');
     const spanTop = pageYOffset + (cr.top > 0 ? cr.top : 0);
@@ -298,82 +258,47 @@ const View = (() => {
     span.style.top = `${spanTop}px`;
     span.style.left = `${spanLeft}px`;
     return span;
-  }
+  })();
 
-  function Hint(window, clicker, hintId, hintable) {
-    const self = this;
-    self.hintId = hintId;
-    self.hintable = hintable;
-    self.hintNode = createHintNode(window, hintId, hintable);
-
-    self.hilight = () => {
-      self.hintNode.className += ` ${hintHilightClass}`;
-    };
-
-    self.dehilight = () => {
-      const re = new RegExp(`(\\s|^)${hintHilightClass}(\\s|$)`);
-      self.hintNode.className = self.hintNode.className.replace(re, '');
-    };
-
-    function click(modifiers) {
-      clicker(self.hintable, modifiers);
-    }
-
-    self.activate = (modifiers) => {
-      if (self.shouldFocus()) {
-        self.hintable.focus();
-      } else {
-        click(modifiers);
-      }
-    };
-
-    self.shouldFocus = () => {
-      const el = self.hintable;
-      const isInput = el.tagName === 'INPUT' && hasInputType(el);
-      return isInput || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT';
-    };
-  }
-
-  return (window, env) => {
-    const self = this;
-    const clicker = env.createClicker(window);
-    const container = createHintsContainer(window);
-    appendToDocument(window, container);
-
-    self.clearHints = () => {
-      container.innerHTML = '';
-      self.hideHints();
-    };
-
-    self.showHints = () => {
-      container.style.display = 'block';
-    };
-
-    self.hideHints = () => {
-      container.style.display = 'none';
-    };
-
-    self.generateHints = (idGenerator) => {
-      const nodes = getHintableNodes(window);
-      const hints = {};
-      const fragment = window.document.createDocumentFragment();
-
-      for (let i = 0; i < nodes.length; i += 1) {
-        const node = nodes[i];
-        if (inViewPort(node)) {
-          const hintId = idGenerator();
-          const hint = new Hint(window, clicker, hintId, node);
-          fragment.appendChild(hint.hintNode);
-          hints[hintId] = hint;
-        }
-      }
-
-      container.appendChild(fragment);
-
-      return hints;
-    };
+  self.highlight = () => {
+    self.hintNode.classList.add(hintHighlightClass);
   };
-})();
+
+  self.dehighlight = () => {
+    self.hintNode.classList.remove(hintHighlightClass);
+  };
+
+  self.activate = (modifiers) => {
+    if (self.shouldFocus()) {
+      self.hintable.focus();
+    } else {
+      click(self.hintable, modifiers);
+    }
+  };
+
+  self.shouldFocus = () => {
+    const el = self.hintable;
+    const isInput = el.tagName === 'INPUT' && inputTypes.has(el.type);
+    return isInput || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT';
+  };
+}
+
+// Check if the given node is within view port
+function inViewPort(node) {
+  const cr = node.getBoundingClientRect();
+  return (cr.bottom > 0 && cr.right > 0
+    && cr.width > 0 && cr.height > 0);
+}
+
+// Checks if the given target should be opened in a new tab
+function shouldOpenInTab({ navigator }, { href }, { metaKey, ctrlKey }) {
+  const isUrl = (
+    typeof href === 'string' && href !== '' && !href.endsWith('/#')
+  );
+  const isMac = navigator.appVersion.includes('Mac');
+  const isOpenNewTabClick = (isMac && metaKey) || ctrlKey;
+  return isUrl && isOpenNewTabClick;
+}
 
 // Simulate a mouse click on a DOM element
 function simulateClick(window, relatedTarget, {
@@ -389,105 +314,207 @@ function simulateClick(window, relatedTarget, {
   relatedTarget.dispatchEvent(event);
 }
 
-// Checks if the given target should be opened in a new tab
-function shouldOpenInNewTab({ navigator }, { href }, { metaKey, ctrlKey }) {
-  const isUrl = (
-    typeof href === 'string' && href !== '' && !href.endsWith('/#')
-  );
-  const isMac = navigator.appVersion.includes('Mac');
-  const isOpenNewTabClick = (isMac && metaKey) || ctrlKey;
-  return isUrl && isOpenNewTabClick;
-}
-
 // Click simulator with alternative new tab behaviour
 function doClick({
-  window, target, mods, newTab,
+  window, target, mods, openInTab,
 }) {
-  if (shouldOpenInNewTab(window, target, mods)) {
-    newTab(target.href);
+  if (shouldOpenInTab(window, target, mods)) {
+    openInTab(target.href);
   } else {
     simulateClick(window, target, mods);
   }
 }
 
-/// Browser envs ///
-//
-// These functions are used for generating browser specific
-// collections of functionality that are called here "environments".
-//
-// Each environment includes the following functionalities:
-//   * createClicker: function that creates a click event simulator
-//
+// Engine renders the given hints on the browser DOM
+// and handles the UI logic
+function Engine(window, state, hintIdGenerator, env, options) {
+  const self = this;
+  const { document } = window;
+  const { openInTab } = env;
 
-function chromeEnv() {
-  const env = {};
-  function newTab(url) {
-    chrome.runtime.sendMessage(null, { url });
-  }
-  env.createClicker = (window) => (target, mods) => doClick({
-    window, target, mods, newTab,
-  });
-  return env;
-}
+  // DOM node containing all the hint nodes
+  const container = (() => {
+    const c = document.createElement('div');
+    c.id = hintContainerId;
+    c.style.display = 'none';
+    document.documentElement.appendChild(c);
+    return c;
+  })();
 
-function webExtEnv() {
-  const env = {};
-  function newTab(url) {
-    browser.runtime.sendMessage(null, { url });
+  // Clear the hints container and hide it
+  function clearHints() {
+    container.innerHTML = '';
+    container.style.display = 'none';
   }
-  env.createClicker = (window) => (target, mods) => doClick({
-    window, target, mods, newTab,
-  });
-  return env;
-}
 
-// Greasemonkey / UserScript env
-function gmEnv() {
-  const env = {};
-  function newTab(url) {
-    GM_openInTab(url);
+  // Show the hints container
+  function showHints() {
+    container.style.display = 'block';
   }
-  env.createClicker = (window) => (target, mods) => doClick({
-    window, target, mods, newTab,
+
+  // Perform a click action on the given element with the given keyboard modifiers
+  function clicker(target, mods) {
+    doClick({
+      window, target, mods, openInTab,
+    });
+  }
+
+  // Generate hint elements for all the visible hintable elements,
+  // and place them to the hints container
+  function generateHints(idGenerator) {
+    const hints = {};
+    const nodes = document.querySelectorAll(hintableSelectors);
+    const fragment = document.createDocumentFragment();
+
+    nodes.forEach((node) => {
+      if (inViewPort(node)) {
+        const hintId = idGenerator();
+        const hint = new Hint(window, clicker, hintId, node);
+        fragment.appendChild(hint.hintNode);
+        hints[hintId] = hint;
+      }
+    });
+    container.appendChild(fragment);
+
+    return hints;
+  }
+
+  // Deactivate the current hint and erase the input buffer
+  function clearInput() {
+    const hint = state.currentHint();
+    if (hint) {
+      hint.dehighlight();
+    }
+    state.clearInput();
+  }
+
+  function activate() {
+    state.activate();
+    const hints = generateHints(hintIdGenerator.start());
+    state.setHints(hints);
+    showHints();
+  }
+
+  // Toggle the activation state
+  self.toggle = () => {
+    switch (state.inputState()) {
+      case inputStates.selected:
+        clearInput();
+        break;
+      case inputStates.activated:
+        self.deactivate();
+        break;
+      case inputStates.deactivated:
+        activate();
+        break;
+      default:
+        break;
+    }
+    return true;
+  };
+
+  self.deactivate = () => {
+    state.deactivate();
+    clearInput();
+    clearHints();
+  };
+
+  self.cancel = () => {
+    state.whenActive(self.deactivate);
+  };
+
+  self.clickCurrentHint = (e) => state.whenActive(() => {
+    state.withCurrentHint((h) => {
+      h.activate(e);
+      if (h.shouldFocus() || options.deactivateAfterHit) {
+        self.deactivate();
+      }
+    });
+    clearInput();
   });
-  return env;
+
+  self.addCharacter = ({ keyCode }) => state.whenActive(() => {
+    const c = String.fromCharCode(keyCode).toLowerCase();
+    if (hintIdGenerator.includes(c)) {
+      state.withCurrentHint((h) => { h.dehighlight(); });
+      state.addInput(c);
+      state.withCurrentHint((h) => { h.highlight(); });
+    }
+  });
 }
 
 // Boot is the entrypoint for all browser versions of YAHE
 // Window is your browser window object, options include options seen above,
 // and the env provides browser specific features.
 function boot(window, options, env) {
-  const keyMapper = new KeyMapper(window);
-  const view = new View(window, env);
-  const generator = hintIdGenerator.bind(null, options.hintCharacters);
-  const controller = new Controller(view, generator, options);
-  const toggle = controller.toggle.bind(controller);
-  const esc = controller.escape.bind(controller);
-  const activate = controller.activateCurrentHint.bind(controller);
-  const addChar = controller.addCharacter.bind(controller);
-  const deactivate = controller.deactivate.bind(controller);
+  const generator = new HintIdGenerator(options.hintCharacters);
+  const state = new State();
+  const engine = new Engine(window, state, generator, env, options);
 
-  keyMapper.addHandler(options.activateKey, [options.activateModifier], toggle);
-  keyMapper.addHandler(27, null, esc);
-  keyMapper.addHandler(13, null, activate);
-  keyMapper.addDefaultNonModifierHandler(addChar);
-  window.addEventListener('beforeunload', deactivate, true);
+  // set up key mappings and other event listeners
+  const km = new KeyMapper(window);
+  km.addHandler(
+    options.activateKey,
+    [options.activateModifier],
+    engine.toggle.bind(engine),
+  );
+  km.addHandler(
+    27, // 27 = esc key
+    null,
+    engine.cancel.bind(engine),
+  );
+  km.addHandler(
+    13, // 13 = enter key
+    null,
+    engine.clickCurrentHint.bind(engine),
+  );
+  km.addDefaultNonModifierHandler(engine.addCharacter.bind(engine));
+  window.addEventListener('beforeunload', engine.deactivate.bind(engine), true);
 }
 
 // Check which browser is running, load the appropriate environment, and boot up YAHE!
-if (isWebExt) {
+//
+// Each environment includes the following functionalities:
+//   * openInTab: function for opening links in new tabs
+//
+(() => {
   // Web extension
-  browser.storage.local.get().then((response) => {
-    boot(window, optionParser(response), webExtEnv());
-  });
-} else if (isChrome) {
+  if (typeof browser !== 'undefined') {
+    const env = {
+      openInTab: (url) => {
+        browser.runtime.sendMessage(null, { url });
+      },
+    };
+    browser.storage.local.get().then((response) => {
+      boot(window, parseOptions(response), env);
+    });
+    return;
+  }
+
   // Chrome
-  chrome.storage.local.get(null, (response) => {
-    boot(window, optionParser(response), chromeEnv());
-  });
-} else if (isGM) {
+  if (typeof chrome !== 'undefined' && typeof browser === 'undefined') {
+    const env = {
+      openInTab: (url) => {
+        chrome.runtime.sendMessage(null, { url });
+      },
+    };
+    chrome.storage.local.get(null, (response) => {
+      boot(window, parseOptions(response), env);
+    });
+    return;
+  }
+
   // GreaseMonkey / Userscript
-  boot(window, defaultOptions, gmEnv());
-} else {
+  // GreaseMonkey provides a custom function for opening new tabs that we can use.
+  if (typeof GM_openInTab !== 'undefined') { // eslint-disable-line camelcase
+    const env = {
+      openInTab: (url) => {
+        GM_openInTab(url);
+      },
+    };
+    boot(window, defaultOptions, env);
+    return;
+  }
+
   console.log('yahe: unknown browser!'); // eslint-disable-line no-console
-}
+})();
