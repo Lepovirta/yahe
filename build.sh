@@ -9,7 +9,6 @@ hash python
 OUTPUTDIR="./output"
 WE_OUTPUTDIR="$OUTPUTDIR/webextension"
 CHROME_OUTPUTDIR="$OUTPUTDIR/chrome"
-GM_OUTPUTDIR="$OUTPUTDIR/greasemonkey"
 
 wrap_js() {
     echo '(function() {'
@@ -68,35 +67,9 @@ build_chrome() {
     )
 }
 
-greasemonkey_script() {
-    cat <<EOF
-// ==UserScript==
-// @name          YAHE
-// @description   Yet Another Hints Extension
-// @namespace     https://github.com/Lepovirta/yahe
-// @icon          https://raw.githubusercontent.com/Lepovirta/yahe/master/images/icons/icon48.png
-// @homepageURL   https://github.com/Lepovirta/yahe
-// @version       $(git_version)
-// @grant         GM_addStyle
-// @grant         GM_openInTab
-// ==/UserScript==
-EOF
-    printf 'GM_addStyle("'
-    tr -d '\n' < yahe.css
-    echo '");'
-    wrap_js yahe.js
-}
-
-build_greasemonkey() {
-    echo "building greasemonkey" >&2
-    mkdir -p "$GM_OUTPUTDIR"
-    greasemonkey_script > "$GM_OUTPUTDIR/yahe.user.js"
-}
-
 build_all() {
     build_webextension
     build_chrome
-    build_greasemonkey
 }
 
 clean_all() {

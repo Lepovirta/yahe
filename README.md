@@ -28,11 +28,6 @@ Install from [Chrome Web Store][cws].
 
 Install from [Firefox Add-ons][ffao]
 
-### Greasemonkey script in Firefox
-
-Download the latest `yahe.user.js` file from the [releases page](https://github.com/Lepovirta/yahe/releases),
-and open it with [Greasemonkey][].
-
 ## Hacking
 
 All the code for YAHE is located in the `yahe.js` and `yahe-bg.js` files.
@@ -65,8 +60,6 @@ The Firefox extension can be loaded from the build output by following these ste
 3. Click the "Load Temporary Add-on..." button.
 4. Select the `output/webextension/` directory from the directory where you cloned this repository to.
 
-The Greasemonkey script can be loaded by opening the `output/greasemonkey/yahe.user.js` file from the directory where you cloned this repository to.
-
 If you want to change the default settings for the script,
 change the values in `yahe.js` source file.
 Remember to rebuild after changing the values.
@@ -86,7 +79,6 @@ These are the browsers and extensions that worked as an inspiration for YAHE:
 
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
 [ffao]: https://addons.mozilla.org/en-US/firefox/addon/yet-another-hints-extension/
-[greasemonkey]: https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
 [bash]: https://www.gnu.org/software/bash/
 [python]: https://www.python.org/
 [git]: https://git-scm.com/
