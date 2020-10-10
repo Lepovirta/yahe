@@ -4,7 +4,7 @@
   "description": "Yet Another Hints Extension",
   "main": "yahe.js",
   "scripts": {
-    "test": "eslint options/*.js *.js",
+    "lint": "eslint options/*.js *.js",
     "build": "./build.sh"
   },
   "repository": {
