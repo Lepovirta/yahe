@@ -300,7 +300,7 @@ function shouldOpenInTab({ navigator }, { href }, { metaKey, ctrlKey }) {
 }
 
 // Simulate a mouse click on a DOM element
-function simulateClick(window, relatedTarget, {
+function simulateClick(relatedTarget, {
   ctrlKey, altKey, shiftKey, metaKey,
 }) {
   const event = new MouseEvent('click', {
@@ -320,7 +320,7 @@ function doClick({
   if (shouldOpenInTab(window, target, mods)) {
     openInTab(target.href);
   } else {
-    simulateClick(window, target, mods);
+    simulateClick(target, mods);
   }
 }
 
