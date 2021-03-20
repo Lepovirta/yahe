@@ -13,4 +13,4 @@ upload_file() {
 for file in output/*.zip; do
     upload_file "$file"
 done
-upload_file output/sha256sum.txt
+upload_file output/sha256sums.txt
