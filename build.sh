@@ -4,7 +4,6 @@ set -euo pipefail
 # Check for tools
 hash git
 hash zip
-hash python
 
 OUTPUTDIR="./output"
 WE_OUTPUTDIR="$OUTPUTDIR/webextension"
@@ -21,16 +20,7 @@ git_version() {
 }
 
 build_manifest() {
-    python - "$(git_version)" "$@" <<'EOF'
-import sys, json
-manifest = {}
-for arg in sys.argv[3:]:
-    with open(arg) as f:
-        manifest.update(json.load(f))
-manifest['version'] = sys.argv[1]
-with open(sys.argv[2], 'w') as f:
-    json.dump(manifest, f, indent=4)
-EOF
+    node build_manifest.js "$(git_version)" "$@"
 }
 
 create_common_resources() {
