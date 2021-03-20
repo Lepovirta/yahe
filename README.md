@@ -20,13 +20,13 @@ In Chrome, you can customize the hint key and hint characters in the extension's
 
 ## Installation
 
-### Chrome
+You can find YAHE from these official browser add-on pages:
 
-Install from [Chrome Web Store][cws].
+* Chrome: [Chrome Web Store][cws]
+* Firefox: [Firefox Add-ons](ffao)
 
-### Firefox
-
-Install from [Firefox Add-ons][ffao]
+Alternatively, you can side-load the extension from a local build.
+See the hacking section below for further details.
 
 ## Hacking
 

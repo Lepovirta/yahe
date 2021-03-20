@@ -107,6 +107,7 @@ async function writeSha256File(files) {
 async function main() {
   const output = await Promise.all(buildConfigs.map(buildExtensionPackage));
   await writeSha256File(output);
+  await fs.writeFile(`${OUTPUTDIR}/version.txt`, gitVersion);
 }
 
 main();
