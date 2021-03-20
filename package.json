@@ -6,22 +6,24 @@
   "private": true,
   "scripts": {
     "lint": "eslint options/*.js *.js",
+    "test": "jest yahe.test.js",
     "build": "./build.sh"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Lepovirta/yahe.git"
+    "url": "git+https://gitlab.com/lepovirta/yahe.git"
   },
   "author": "Jaakko Pallari",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/Lepovirta/yahe/issues"
+    "url": "https://gitlab.com/lepovirta/yahe/-/issues"
   },
-  "homepage": "https://github.com/Lepovirta/yahe#readme",
+  "homepage": "https://gitlab.com/lepovirta/yahe#readme",
   "devDependencies": {
     "eslint": "^7.10.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-node": "^11.1.0"
+    "eslint-plugin-node": "^11.1.0",
+    "jest": "^26.6.3"
   }
 }

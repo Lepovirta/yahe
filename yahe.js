@@ -503,5 +503,13 @@ function boot(window, options, env) {
     return;
   }
 
+  // NodeJS -- export everything we want to test
+  if (typeof module !== 'undefined') {
+    module.exports = {
+      HintIdGenerator,
+    };
+    return;
+  }
+
   console.log('yahe: unknown browser!'); // eslint-disable-line no-console
 })();
