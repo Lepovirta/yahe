@@ -1,0 +1,51 @@
+include:
+- template: Security/Dependency-Scanning.gitlab-ci.yml
+- template: Security/License-Scanning.gitlab-ci.yml
+- template: Security/SAST.gitlab-ci.yml
+- template: Security/Secret-Detection.gitlab-ci.yml
+
+image: node:14
+
+stages:
+- setup
+- test
+- build
+
+workflow:
+  rules:
+  - if: $CI_MERGE_REQUEST_ID
+  - if: $CI_COMMIT_BRANCH == "master"
+
+.node-cache:
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+    - node_modules/
+
+setup-js:
+  stage: setup
+  extends: .node-cache
+  script:
+  - npm install
+
+test-js:
+  stage: test
+  extends: .node-cache
+  script:
+  - npm run test
+
+lint-js:
+  stage: test
+  extends: .node-cache
+  script:
+  - npm run lint
+
+build-js:
+  stage: build
+  extends: .node-cache
+  script:
+  - npm run build
+  artifacts:
+    paths:
+    - output
+    expire_in: 14 days
