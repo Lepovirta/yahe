@@ -22,8 +22,9 @@ In Chrome, you can customize the hint key and hint characters in the extension's
 
 You can find YAHE from these official browser add-on pages:
 
-* Chrome: [Chrome Web Store][cws]
-* Firefox: [Firefox Add-ons](ffao)
+* [Google Chrome][cws]
+* [Mozilla Firefox][ffao]
+* [Microsoft Edge][edgeao]
 
 Alternatively, you can side-load the extension from a local build.
 See the hacking section below for further details.
@@ -87,6 +88,7 @@ These are the browsers and extensions that worked as an inspiration for YAHE:
 
 [cws]: https://chrome.google.com/webstore/detail/eimkmfhfckmajkednnnhkacajflcjinm
 [ffao]: https://addons.mozilla.org/en-US/firefox/addon/yet-another-hints-extension/
+[edgeao]: https://microsoftedge.microsoft.com/addons/detail/yet-another-hints-extensi/oblcogekcgnkimamhnekiohhikomblod
 [git]: https://git-scm.com/
 [hhopera]: https://github.com/hogelog/hit-a-hint-opera
 [dwb]: https://portix.bitbucket.io/dwb/
