@@ -39,13 +39,13 @@ If you want to build the extension packages yourself,
 you need the following tools installed:
 
 * [Git][]
-* [NPM][]
+* [Yarn][]
 
-Use the build command in NPM to build all components:
+Use the build command in Yarn to build all components:
 
 ```
-$ npm install
-$ npm run build
+$ yarn install
+$ yarn run build
 ```
 
 The Chrome extension can be loaded from the build output by following these steps:
@@ -66,11 +66,11 @@ If you want to change the default settings for the script,
 change the values in `yahe.js` source file.
 Remember to rebuild after changing the values.
 
-You can also check the code for lint errors using [NPM][] and [ESLint][]:
+You can also check the code for lint errors using [Yarn][] and [ESLint][]:
 
 ```
-$ npm install
-$ npm run lint
+$ yarn install
+$ yarn run lint
 ```
 
 ## Inspiration
@@ -92,5 +92,6 @@ These are the browsers and extensions that worked as an inspiration for YAHE:
 [git]: https://git-scm.com/
 [hhopera]: https://github.com/hogelog/hit-a-hint-opera
 [dwb]: https://portix.bitbucket.io/dwb/
-[npm]: https://www.npmjs.com/get-npm
+[yarn]: https://yarnpkg.com/
 [eslint]: https://eslint.org/
+

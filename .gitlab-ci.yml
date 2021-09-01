@@ -28,25 +28,25 @@ setup-js:
   stage: setup
   extends: .node-cache
   script:
-  - npm install
+  - yarn install
 
 test-js:
   stage: test
   extends: .node-cache
   script:
-  - npm run test
+  - yarn run test
 
 lint-js:
   stage: test
   extends: .node-cache
   script:
-  - npm run lint
+  - yarn run lint
 
 build-js:
   stage: build
   extends: .node-cache
   script:
-  - npm run build
+  - yarn run build
   artifacts:
     paths:
     - output
